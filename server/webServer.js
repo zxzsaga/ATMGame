@@ -1,26 +1,25 @@
-var fs = require('fs');
 var express = require('express');
 var connect = require('connect');
+var config = require('./config').config;
 
-var config = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-var webServer = express();
-webServer.use(connect.urlencoded());
-webServer.use(connect.json());
-webServer.use(express.static(__dirname + '/public'))
-webServer.set('view engine', 'html');
-webServer.engine('html', require('ejs').renderFile);
+var app = express();
+app.use(connect.urlencoded());
+app.use(connect.json());
+app.use(express.static(__dirname + '/public'))
+app.set('view engine', 'html');
+app.engine('html', require('ejs').renderFile);
+app.listen(config.web.port);
+console.log('Web-server liston on: ' + config.web.port);
 
-webServer.get('/', function(req, res) {
+app.get('/', function(req, res) {
     res.render('login.html');
 });
 
-webServer.post('/login', function(req, res) {
+app.post('/login', function(req, res) {
     console.log(req.param('username'));
     console.log(req.param('password'));
 });
 
-webServer.listen(config.PORT);
-console.log('Web-server liston on: ' + config.PORT);
 /*
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
