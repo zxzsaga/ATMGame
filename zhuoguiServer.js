@@ -6,7 +6,7 @@ server.listen(config.zhuogui.port);
 console.log("zhuogui-server listen on: " + config.zhuogui.port);
 
 app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/zhuogui.html');
+  res.sendfile(__dirname + '/views/zhuogui.html');
 });
 
 var io = require('socket.io').listen(server);

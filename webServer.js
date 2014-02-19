@@ -1,47 +1,41 @@
+var fs = require('fs');
 var express = require('express');
 var connect = require('connect');
 var config = require('./config').config;
+var UserDAO = require('./app/DAO/UserDAO');
 
 var app = express();
 app.use(connect.urlencoded());
 app.use(connect.json());
 app.use(express.static(__dirname + '/public'))
+// app.set('views', __dirname + '/public')
 app.set('view engine', 'html');
 app.engine('html', require('ejs').renderFile);
 app.listen(config.web.port);
 console.log('Web-server liston on: ' + config.web.port);
+// console.log(express.static);
 
 app.get('/', function(req, res) {
-    res.render('login.html');
-});
-
-app.post('/login', function(req, res) {
-    console.log(req.param('username'));
-    console.log(req.param('password'));
-});
-
 /*
-var server = require('http').createServer(app);
-var io = require('socket.io').listen(server);
-
-server.listen(3000);
-
-app.get('/', function(req, res) {
-    res.render('test');
-    // res.render('index');
-});
-
-io.sockets.on('connection', function (socket) {
-  socket.emit('news', { hello: 'world' });
-  socket.on('my other event', function (data) {
-    console.log(data);
-  });
+    fs.readFile('./amaze/bin-release/Game.html', 'utf8', function(err, page) {
+        if (err) {
+            console.log(err);
+            process.exit(1);
+        }
+        res.writeHead(200, {'Content-Type': 'text/html'});
+        res.write(page);
+        res.end();
+    });
+*/
+    res.render('amaze/bin-release/Game.html');
+    // res.render('login.html');
 });
 
 app.post('/login', function(req, res) {
-    console.log(req.body);
-    res.json(req.body);
+    UserDAO.getPassword(req.param('username'), function(err, password) {
+        if (err) {
+            throw err;
+        }
+        console.log(password);
+    })
 });
-
-app.listen(config.PORT);
-*/

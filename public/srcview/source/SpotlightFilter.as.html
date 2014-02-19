@@ -1,0 +1,155 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>SpotlightFilter.as</title>
+<link rel="stylesheet" type="text/css" href="../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptASDoc">/**
+ *    Copyright (c) 2012 Devon O. Wolfgang
+ *
+ *    Permission is hereby granted, free of charge, to any person obtaining a copy
+ *    of this software and associated documentation files (the "Software"), to deal
+ *    in the Software without restriction, including without limitation the rights
+ *    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ *    copies of the Software, and to permit persons to whom the Software is
+ *    furnished to do so, subject to the following conditions:
+ *
+ *    The above copyright notice and this permission notice shall be included in
+ *    all copies or substantial portions of the Software.
+ *
+ *    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ *    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ *    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ *    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ *    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ *    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ *    THE SOFTWARE.
+ */</span>
+
+<span class="ActionScriptpackage">package</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display3D</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Context3D</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display3D</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Context3DProgramType</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display3D</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Program3D</span>;
+    
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">textures</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Texture</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">filters</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FragmentFilter</span>;
+    
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">SpotlightFilter</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">FragmentFilter</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mCenter</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">&gt;</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptBracket/Brace">&lt;</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">&gt;</span><span class="ActionScriptBracket/Brace">[</span>1<span class="ActionScriptOperator">,</span> 1<span class="ActionScriptOperator">,</span> 1<span class="ActionScriptOperator">,</span> 1<span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mVars</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">&gt;</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptBracket/Brace">&lt;</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">&gt;</span><span class="ActionScriptBracket/Brace">[</span>.50<span class="ActionScriptOperator">,</span> .50<span class="ActionScriptOperator">,</span> .50<span class="ActionScriptOperator">,</span> .50<span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mPixelSize</span>:<span class="ActionScriptDefault_Text">int</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mShaderProgram</span>:<span class="ActionScriptDefault_Text">Program3D</span>;
+        
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mCenterX</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mCenterY</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mAmount</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mSize</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mRadius</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">mUseFlicker</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * Produces a spotlight or vignette like effect on Starling display objects.
+         * @param    cx            center x of spotlight. should be relative to display object being filtered
+         * @param    cy            center y of spotlight. should be relative to display object being filtered
+         * @param    amount        how much should the effect be applied.
+         * @param    radius        the amount of inner bright light.
+         * @param    size        the size of the effect
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">SpotlightFilter</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">cx</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.0<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">cy</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0.0<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">amount</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 1.0<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">radius</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> .25<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">size</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> .05<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">useFlicker</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span> <span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">mCenterX</span>    <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">cx</span>;
+            <span class="ActionScriptDefault_Text">mCenterY</span>    <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">cy</span>;
+            <span class="ActionScriptDefault_Text">mAmount</span>        <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">amount</span>;
+            <span class="ActionScriptDefault_Text">mRadius</span>        <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">radius</span>;
+            <span class="ActionScriptDefault_Text">mSize</span>        <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">size</span>;
+            <span class="ActionScriptDefault_Text">mUseFlicker</span>    <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">useFlicker</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">override</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">mShaderProgram</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptDefault_Text">mShaderProgram</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">override</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">createPrograms</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">fragmentProgramCode</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span>
+                
+                <span class="ActionScriptString">"sub ft0.xy, v0.xy, fc0.xy \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"mov ft2.x, fc1.w \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"mul ft2.x, ft2.x, fc1.z \n"</span> <span class="ActionScriptOperator">+</span>
+                
+                <span class="ActionScriptString">"sub ft3.xy, ft0.xy, ft2.x \n"</span> <span class="ActionScriptOperator">+</span>
+                
+                <span class="ActionScriptString">"dp3 ft4.x, ft3.xy, ft3.xy \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"sqt ft4.x, ft4.x \n"</span> <span class="ActionScriptOperator">+</span>
+                
+                <span class="ActionScriptString">"dp3 ft4.y, ft2.x, ft2.x \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"sqt ft4.y, ft4.y \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"div ft5.x, ft4.x, ft4.y \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"pow ft5.y, ft5.x, fc1.y \n"</span> <span class="ActionScriptOperator">+</span>
+                
+                
+                <span class="ActionScriptString">"mul ft5.z, fc1.x, ft5.y \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"sat ft5.z, ft5.z \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"min ft5.z, ft5.z, fc0.z \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"sub ft6, fc0.z, ft5.z \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"tex ft1, v0, fs0&lt;2d, clamp, linear, nomip&gt; \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"mul ft6, ft6, ft1 \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"mov ft6.w, ft1.w \n"</span> <span class="ActionScriptOperator">+</span>
+                <span class="ActionScriptString">"mov oc, ft6"</span>
+            
+            <span class="ActionScriptDefault_Text">mShaderProgram</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">assembleAgal</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">fragmentProgramCode</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">override</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">activate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">pass</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">context</span>:<span class="ActionScriptDefault_Text">Context3D</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">texture</span>:<span class="ActionScriptDefault_Text">Texture</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptComment">// already set by super class:
+</span>            <span class="ActionScriptComment">//
+</span>            <span class="ActionScriptComment">// vertex constants 0-3: mvpMatrix (3D)
+</span>            <span class="ActionScriptComment">// vertex attribute 0:   vertex position (FLOAT_2)
+</span>            <span class="ActionScriptComment">// vertex attribute 1:   texture coordinates (FLOAT_2)
+</span>            <span class="ActionScriptComment">// texture 0:            input texture
+</span>            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">halfSize</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mSize</span> <span class="ActionScriptOperator">*</span> .50;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">cx</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mCenterX</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">texture</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">halfSize</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">cy</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mCenterY</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">texture</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">halfSize</span>;
+            <span class="ActionScriptDefault_Text">mCenter</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">cx</span>;
+            <span class="ActionScriptDefault_Text">mCenter</span><span class="ActionScriptBracket/Brace">[</span>1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">cy</span>;
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">radius</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mUseFlicker</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">mRadius</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">random</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span> : <span class="ActionScriptDefault_Text">mRadius</span>;
+            
+            <span class="ActionScriptDefault_Text">mVars</span><span class="ActionScriptBracket/Brace">[</span>0<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mAmount</span>;
+            <span class="ActionScriptDefault_Text">mVars</span><span class="ActionScriptBracket/Brace">[</span>1<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">radius</span>;
+            <span class="ActionScriptDefault_Text">mVars</span><span class="ActionScriptBracket/Brace">[</span>3<span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">mSize</span>;
+            
+            <span class="ActionScriptDefault_Text">context</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setProgramConstantsFromVector</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Context3DProgramType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FRAGMENT</span><span class="ActionScriptOperator">,</span> 0<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">mCenter</span><span class="ActionScriptOperator">,</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">context</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setProgramConstantsFromVector</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Context3DProgramType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FRAGMENT</span><span class="ActionScriptOperator">,</span> 1<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">mVars</span><span class="ActionScriptOperator">,</span>   1<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">context</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setProgram</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">mShaderProgram</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">centerX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mCenterX</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">centerX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mCenterX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">centerY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mCenterY</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">centerY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mCenterY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">amount</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mAmount</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">amount</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mAmount</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">size</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mSize</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">size</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mSize</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">radius</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mRadius</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">radius</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mRadius</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">useFlicker</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">mUseFlicker</span>; <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">useFlicker</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> <span class="ActionScriptBracket/Brace">{</span> <span class="ActionScriptDefault_Text">mUseFlicker</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>; <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>
