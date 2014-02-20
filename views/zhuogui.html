@@ -2,10 +2,10 @@
   <head>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-      var socket = io.connect('http://localhost:8001');
+      var socket = io.connect('http://localhost:23457');
+      socket.emit('news', { my: 'data' });
       socket.on('news', function (data) {
-      console.log(data);
-      socket.emit('my other event', { my: 'data' });
+        console.log(data);
       });
     </script>
   </head>

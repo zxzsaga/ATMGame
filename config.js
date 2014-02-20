@@ -4,6 +4,6 @@ exports.config = {
         "DBName": "mongodb://localhost:27017/ATMGame"
     },
     "zhuogui": {
-        "port": 8001
+        "port": 23457
     },
 }
