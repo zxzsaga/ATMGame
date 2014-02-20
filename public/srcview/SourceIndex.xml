@@ -2,6 +2,9 @@
 <index>
 	<title>simpleMaze2 的源代码</title>
 	<nodes>
+		<node label="bgm">
+			<node label="maze.mp3" url="source/bgm/maze.mp3"/>
+		</node>
 		<node label="html-template">
 			<node label="history">
 				<node icon="cssIcon" label="history.css" url="source/html-template/history/history.css.html"/>
@@ -26,7 +29,7 @@
 			<node icon="actionScriptIcon" label="SpotlightFilter.as" url="source/SpotlightFilter.as.html"/>
 		</node>
 	</nodes>
-	<zipfile label="下载源代码（ZIP，106 KB）" url="simpleMaze2.zip">
+	<zipfile label="下载源代码（ZIP，2580 KB）" url="simpleMaze2.zip">
 	</zipfile>
 	<sdklink label="下载 Flex SDK" url="http://www.adobe.com/go/flex451_sdk_download_zh_CN">
 	</sdklink>
