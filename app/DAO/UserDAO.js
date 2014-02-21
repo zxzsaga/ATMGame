@@ -1,31 +1,35 @@
 var MongoClient = require('mongodb').MongoClient;
-var config = require('../../config').config;
 var baseDAO = require('./baseDAO');
 
-exports.create = function(userName, password, cb) {
-    var obj = { _id: userName, password: password };
-    baseDAO.create(
-        config.web.DBName,
-        'Users',
-        obj,
-        function(err, docs) {
-            if (err) {
-                return cb(err);
-            }
-            return cb(err, docs);
-        });
+function UserDAO(DB) {
+    this.DB = DB;
 }
 
-exports.getPassword = function(userName, cb) {
-    var obj = { _id: userName };
-    baseDAO.findOne(
-        config.web.DBName,
+UserDAO.prototype.create = function(userName, password, cb) {
+    var obj = { _id: userName, password: password };
+    baseDAO.create(
+        this.DB,
         'Users',
         obj,
-        function(err, docs) {
+        function(err, doc) {
             if (err) {
                 return cb(err);
             }
-            return cb(err, docs.password);
+            return cb(err, doc);
         });
-}
+};
+UserDAO.prototype.getPassword = function(userName, cb) {
+    var obj = { _id: userName };
+    baseDAO.findOne(
+        this.DB,
+        'Users',
+        obj,
+        function(err, doc) {
+            if (err) {
+                return cb(err);
+            }
+            return cb(err, doc.password);
+        });
+};
+
+exports.UserDAO = UserDAO;

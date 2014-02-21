@@ -1,0 +1,11 @@
+{
+    "web": {
+        "port": 8000,
+        "public": "web",
+        "DB": "mongodb://localhost:27017/ATMGame"
+    },
+    "zhuogui": {
+        "public": "zhuogui",
+        "port": 8001
+    }
+}

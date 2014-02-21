@@ -1,41 +1,44 @@
-var fs = require('fs');
-var express = require('express');
-var connect = require('connect');
-var config = require('./config').config;
-var UserDAO = require('./app/DAO/UserDAO');
+'use strict';
 
-var app = express();
-app.use(connect.urlencoded());
-app.use(connect.json());
-app.use(express.static(__dirname + '/public'))
-// app.set('views', __dirname + '/public')
-app.set('view engine', 'html');
-app.engine('html', require('ejs').renderFile);
-app.listen(config.web.port);
-console.log('Web-server liston on: ' + config.web.port);
-// console.log(express.static);
+var express = require('express'), app = express();
+var connect = require('connect'); // use for parse response body.
+var Log = require('log'), log = new Log('info');
 
-app.get('/', function(req, res) {
-/*
-    fs.readFile('./amaze/bin-release/Game.html', 'utf8', function(err, page) {
-        if (err) {
-            console.log(err);
-            process.exit(1);
-        }
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write(page);
-        res.end();
+var UserDAO = require('./app/DAO/UserDAO').UserDAO;
+
+function runWebServer(webConfig) {
+    app.use(express.cookieParser());
+    app.use(connect.urlencoded());
+    app.use(connect.json());
+    app.use(express.static(__dirname + '/public/' + webConfig.public));
+    app.set('views', __dirname + '/public/' + webConfig.public);
+    app.set('view engine', 'html');
+    app.engine('html', require('ejs').renderFile);
+    app.listen(webConfig.port);
+    log.info('Web-server liston on: ' + webConfig.port);
+
+    app.get('/', function(req, res) {
+        res.render('login.html');
     });
-*/
-    res.render('amaze/bin-release/Game.html');
-    // res.render('login.html');
-});
-
-app.post('/login', function(req, res) {
-    UserDAO.getPassword(req.param('username'), function(err, password) {
-        if (err) {
-            throw err;
-        }
-        console.log(password);
-    })
-});
+    
+    app.post('/login', function(req, res) {
+        var userdao = new UserDAO(webConfig.DB);
+        userdao.getPassword(req.param('username'), function(err, password) {
+            if (err) {
+                res.send({ error: "User doesn't exist" });
+                // throw err;
+            }
+            else {
+                if (password !== req.param('password')) {
+                    res.send({ error: "password doesn't match" });
+                }
+                else {
+                    res.cookie('accessId', req.param('username'), { maxAge: 10800, signed: true });
+                }
+            }
+            console.log(password);
+            res.redirect('/');
+        })
+    });
+}
+exports.runWebServer = runWebServer;
