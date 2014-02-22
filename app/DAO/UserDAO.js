@@ -18,7 +18,7 @@ UserDAO.prototype.create = function(userName, password, cb) {
             return cb(err, doc);
         });
 };
-UserDAO.prototype.getPassword = function(userName, cb) {
+UserDAO.prototype.findOne = function(userName, cb) {
     var obj = { _id: userName };
     baseDAO.findOne(
         this.DB,
@@ -28,7 +28,7 @@ UserDAO.prototype.getPassword = function(userName, cb) {
             if (err) {
                 return cb(err);
             }
-            return cb(err, doc.password);
+            return cb(err, doc);
         });
 };
 

@@ -1,11 +1,14 @@
 'use strict';
+var fs = require('fs');
 var Log = require('log'), log = new Log('info');
 var express = require('express'), app = express();
 var connect = require('connect'); // use for parse response body.
 var server = require('http').createServer(app);
 var io = require('socket.io').listen(server);
 
-function runZhuoguiServer(zhuoguiConfig) {
+var zhuoguiConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).zhuogui;
+
+function run() {
     app.use(express.cookieParser());
     app.use(connect.urlencoded());
     app.use(connect.json());
@@ -17,7 +20,7 @@ function runZhuoguiServer(zhuoguiConfig) {
     log.info('zhuoghui-server liston on: ' + zhuoguiConfig.port);
 
     app.get('/', function(req, res) {
-        res.render('zhuogui.html');
+        res.render('Game.html');
     });
     io.sockets.on('connection', function(socket) {
         log.info('connected!!!!!!');
@@ -31,4 +34,4 @@ function runZhuoguiServer(zhuoguiConfig) {
         });
     });
 }
-exports.runZhuoguiServer = runZhuoguiServer;
+exports.run = run;

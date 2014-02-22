@@ -5,7 +5,11 @@
         "DB": "mongodb://localhost:27017/ATMGame"
     },
     "zhuogui": {
-        "public": "zhuogui",
-        "port": 8001
+        "port": 8001,
+        "public": "simpleMaze2/bin-release"
+    },
+    "amaze": {
+        "port": 23456,
+        "public": "amaze"
     }
 }

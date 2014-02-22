@@ -1,0 +1,21 @@
+doctype html
+html(lang='en')
+  head
+    meta(charset='utf-8')
+    title ATM Game
+    link(rel='stylesheet', href='http://cdn.bootcss.com/twitter-bootstrap/3.0.3/css/bootstrap.min.css')
+  body(style='padding-top:80px')
+    div.container(style='text-align:center')
+      h1 Welcome ~
+      h1 This is ATM Game Platform
+      br
+      .row
+        form(action='/login', method='POST')
+          .input-group.input-group-lg.col-lg-2.col-lg-offset-5
+            input.form-control(name='username', type='text', placeholder='Username')
+          br
+          .input-group.input-group-lg.col-lg-2.col-lg-offset-5
+            input.form-control(name='password', type='text', placeholder='Password')
+          br
+          input.btn.btn-lg.btn-default(type='submit', value='Login')
+          a.btn.btn-lg.btn-default(href='/register') Register

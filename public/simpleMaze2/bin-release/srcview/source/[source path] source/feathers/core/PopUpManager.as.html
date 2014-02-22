@@ -1,0 +1,252 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>PopUpManager.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Dictionary</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Starling</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Adds a display object as a pop-up above all content.
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">PopUpManager</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">_starlingToPopUpManager</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The default factory that creates a pop-up manager.
+         *
+         * @see feathers.core.DefaultPopUpManager
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">defaultPopUpManagerFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">IPopUpManager</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">DefaultPopUpManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Returns the &lt;code&gt;IPopUpManager&lt;/code&gt; associated with the specified
+         * &lt;code&gt;Starling&lt;/code&gt; instance. If a pop-up manager hasn't been
+         * created yet, it will be created using &lt;code&gt;PopUpManager.popUpManagerFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;In the following example, a pop-up is added:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * PopUpManager.forStarling( Starling.current ).addPopUp( popUp );&lt;/listing&gt;
+         *
+         * @see #popUpManagerFactory
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">starling</span>:<span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">IPopUpManager</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ArgumentError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"PopUpManager not found. Starling cannot be null."</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">popUpManager</span>:<span class="ActionScriptDefault_Text">IPopUpManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">_starlingToPopUpManager</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">popUpManager</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">factory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popUpManagerFactory</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">factory</span> <span class="ActionScriptOperator">===</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">factory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">defaultPopUpManagerFactory</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">popUpManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">factory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptComment">//this allows the factory to optionally set the root, but it
+</span>                <span class="ActionScriptComment">//also enforces the root being on the correct stage.
+</span>                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">popUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contains</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">popUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_starlingToPopUpManager</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">popUpManager</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">popUpManager</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * A function that creates a pop-up manager.
+         *
+         * &lt;p&gt;This function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function():IPopUpManager&lt;/pre&gt;
+         *
+         * &lt;p&gt;In the following example, the overlay factory is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * PopUpManager.popUpManagerFactory = function():IPopUpManager
+         * {
+         *     var popUpManager:DefaultPopUpManager = new DefaultPopUpManager();
+         *     popUpManager.overlayFactory = function():DisplayObject
+         *     {
+         *         var overlay:Quad = new Quad( 100, 100, 0x000000 );
+         *         overlay.alpha = 0.75;
+         *         return overlay;
+         *     };
+         *     return popUpManager;
+         * };&lt;/listing&gt;
+         *
+         * @see feathers.core.IPopUpManager
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">popUpManagerFactory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">defaultPopUpManagerFactory</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A function that returns a display object to use as an overlay for
+         * modal pop-ups.
+         *
+         * &lt;p&gt;This function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function():DisplayObject&lt;/pre&gt;
+         *
+         * &lt;p&gt;In the following example, the overlay factory is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * PopUpManager.overlayFactory = function():DisplayObject
+         * {
+         *     var overlay:Quad = new Quad( 100, 100, 0x000000 );
+         *     overlay.alpha = 0.75;
+         *     return overlay;
+         * };&lt;/listing&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">overlayFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">overlayFactory</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">overlayFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">overlayFactory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The default factory that creates overlays for modal pop-ups. Creates
+         * an invisible &lt;code&gt;Quad&lt;/code&gt;.
+         *
+         * @see starling.display.Quad
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">defaultOverlayFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DefaultPopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">defaultOverlayFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The container where pop-ups are added. If not set manually, defaults
+         * to the Starling stage.
+         *
+         * &lt;p&gt;In the following example, the next tab focus is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * PopUpManager.root = someSprite;&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">root</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">root</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * Adds a pop-up to the stage.
+         *
+         * &lt;p&gt;The pop-up may be modal, meaning that an overlay will be displayed
+         * between the pop-up and everything under the pop-up manager, and the
+         * overlay will block touches. The default overlay used for modal
+         * pop-ups is created by &lt;code&gt;PopUpManager.overlayFactory&lt;/code&gt;. A
+         * custom overlay factory may be passed to &lt;code&gt;PopUpManager.addPopUp()&lt;/code&gt;
+         * to create an overlay that is different from the default one.&lt;/p&gt;
+         *
+         * &lt;p&gt;A pop-up may be centered globally on the Starling stage. If the
+         * stage or the pop-up resizes, the pop-up will be repositioned to
+         * remain in the center. To position a pop-up in the center once,
+         * specify a value of &lt;code&gt;false&lt;/code&gt; when calling
+         * &lt;code&gt;PopUpManager.addPopUp()&lt;/code&gt; and call
+         * &lt;code&gt;PopUpManager.centerPopUp()&lt;/code&gt; manually.&lt;/p&gt;
+         *
+         * &lt;p&gt;Note: The pop-up manager can only detect if Feathers components
+         * have been resized in order to reposition them to remain centered.
+         * Regular Starling display objects do not dispatch a proper resize
+         * event that the pop-up manager can listen to.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isModal</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isCentered</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">customOverlayFactory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isModal</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isCentered</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">customOverlayFactory</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * Removes a pop-up from the stage.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removePopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removePopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if a display object is a pop-up.
+         *
+         * &lt;p&gt;In the following example, we check if a display object is a pop-up:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * if( PopUpManager.isPopUp( displayObject ) )
+         * {
+         *     // do something
+         * }&lt;/listing&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">isPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if a pop-up is above the highest overlay (of if there is
+         * no overlay).
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">isTopLevelPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isTopLevelPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * Centers a pop-up on the stage. Unlike the &lt;code&gt;isCentered&lt;/code&gt;
+         * argument passed to &lt;code&gt;PopUpManager.addPopUp()&lt;/code&gt;, the pop-up
+         * will only be positioned once. If the stage or the pop-up resizes,
+         * &lt;code&gt;PopUpManager.centerPopUp()&lt;/code&gt; will need to be called again
+         * if it should remain centered.
+         *
+         * &lt;p&gt;In the following example, we center a pop-up:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * PopUpManager.centerPopUp( displayObject );&lt;/listing&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">centerPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">centerPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">popUp</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>
