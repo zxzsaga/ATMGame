@@ -5,7 +5,7 @@
         "DB": "mongodb://localhost:27017/ATMGame"
     },
     "amaze": {
-        "port": 8001,
+        "port": 8002,
         "socketPort": 23456,
         "sandboxPort": 843,
         "public": "simpleMaze2/bin-release"
