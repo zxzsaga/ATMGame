@@ -1,0 +1,20 @@
+extend bsLayout
+
+block body
+  div.container(style='text-align:center; padding-top: 50px;')
+    h1 Register
+    br
+    .row
+      form.form-horizontal.col-lg-4.col-lg-offset-4(action='/register', method='POST', role='form')
+        .form-group
+          .col-lg-12
+            input.form-control.input-lg(name='username', type='text', id='username', placeholder='Username')
+        .form-group
+          .col-lg-12
+            input.form-control.input-lg(name='password', type='text', id='password', placeholder='Password')
+        if error
+          .form-group
+            .col-lg-8.col-lg-offset-2.alert.alert-danger
+            p #{ error }
+        .form-group
+          input.col-lg-4.col-lg-offset-4.btn.btn-lg.btn-default(type='submit', value='Register')
