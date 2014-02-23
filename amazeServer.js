@@ -8,9 +8,6 @@ var server = require('http').createServer(app);
 
 var amazeConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).amaze;
 
-app.use(express.cookieParser());
-app.use(connect.urlencoded());
-app.use(connect.json());
 app.use(express.static(__dirname + '/public/' + amazeConfig.public));
 app.set('views', __dirname + '/public/' + amazeConfig.public);
 app.set('view engine', 'html');
@@ -27,6 +24,8 @@ var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
 var playerCode = 1;
 var broadcastTime = 0;
 var globalIp = {};
+var monster = {};
+var trap = {};
 
 var socket = require('net').createServer(function(connect) {
     // log.info('connect: ' + ip);
@@ -47,7 +46,7 @@ var socket = require('net').createServer(function(connect) {
             alive: 0,
         };
         playerCode += 1;
-        user[ip].lastTime = 0;
+        user[ip].lastTime = broadcastTime;
         user[ip].id = user[ip].player.id;
         log.info('new user: ' + ip);
     }
@@ -76,9 +75,42 @@ var socket = require('net').createServer(function(connect) {
                 }
                 delete user[ip];
             }
+            else if (jsonData.type == 'monster') {
+                if (!monster[jsonData.id]) {
+                    monster[jsonData.id] = {};
+                }
+                if (jsonData.trapremain == -1) {
+                    for (var i in user) {
+                        if (user[i].id == jsonData.id) {
+                            for (var j in trap) {
+                                user[i].connection.write(JSON.stringify(trap[j]), 'utf8');
+                            }
+                        }
+                    }
+                }
+                monster[jsonData.id].convertCd = jsonData.convertCd;
+                monster[jsonData.id].trapremain = jsonData.trapremain;
+            }
+            else if (jsonData.type == 'trap') {
+                if (!trap[jsonData.id]) {
+                    trap[jsonData.id] = {};
+                }
+                if (jsonData.x == -1) {
+                    for (var i in user) {
+                        if (user[i].id == jsonData.id) {
+                            for (var j in trap) {
+                                user[i].connection.write(JSON.stringify(trap[j]), 'utf8');
+                            }
+                        }
+                    }
+                }
+                trap[jsonData.id].x = jsonData.x;
+                trap[jsonData.id].y = jsonData.y;
+            }
             else {
                 // console.log(JSON.parse(data));
                 user[ip].player = JSON.parse(data);
+                user[ip].player.lastTime = broadcastTime;
             }
         }
         catch (err) {
@@ -114,7 +146,6 @@ function broadcast() {
                 retStr.id = 0 - user[i].player.id;
             }
             user[i].connection.write(JSON.stringify(retStr), 'utf8');
-            user[i].lastTime ++;
             sendToUser += retStr;
         }
 //        console.log('send to ' + i + ': ' + sendToUser);
