@@ -19,23 +19,28 @@ app.get('/', function(req, res) {
     res.render('Game.html');
 });
 
+
+
 var user = {};
-var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
-var playerCode = 1;
-var broadcastTime = 0;
-var globalIp = {};
+var userNum = 1;
 var monster = {};
 var trap = {};
+var broadcastTime = 0;
+var keyToUser = {}; // { key: usernum }
+
+var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
 
 var socket = require('net').createServer(function(connect) {
     // log.info('connect: ' + ip);
-    var ip = connect.remoteAddress;
-    
-    if (!user[ip]) {
-        user[ip] = {};
-        user[ip].player = {
+    var connectKey = connect.remoteAddress;
+
+    if (!keyToUser[connectKey]) {
+        keyToUser[connectKey] = userNum;
+        userNum ++;
+        user[keyToUser[connectKey]] = {};
+        user[keyToUser[connectKey]].player = {
             type: 'pos',
-            id: playerCode,
+            id: keyToUser[connectKey],
             seed: seed,
             x: -1,
             y: -1,
@@ -45,73 +50,71 @@ var socket = require('net').createServer(function(connect) {
             room: 0,
             alive: 0,
         };
-        playerCode += 1;
-        user[ip].lastTime = broadcastTime;
-        user[ip].id = user[ip].player.id;
-        log.info('new user: ' + ip);
+        log.info('new user: ' + connectKey);
     }
-    user[ip].connection = connect;
-    user[ip].restTime = 10;
-    user[ip].online = true;
+    user[keyToUser[connectKey]].lastTime = broadcastTime;
+    user[keyToUser[connectKey]].connection = connect;
 
     connect.on('end', function() {
-        // user[ip].online = false;
-        log.info('disconnect: ' + ip);
-        // waitForReconnect(ip);
+        log.info('disconnect: ' + connectKey);
     });
-    
     connect.on('error', function() {
-        log.info('error: ' + ip);
+        log.info('error: ' + connectKey);
     })
     connect.on('data', function(data) {
         try {
-            var jsonData = JSON.parse(data);
-            if (jsonData.type == 'drop') {
-                console.log('drop: ' + ip);
-                for (var i in user) {
-                    if (i != ip) {
-                        user[i].connection.write(JSON.stringify(data), 'utf8');
+            data = JSON.parse(data);
+            if (data.type == 'drop') {
+                console.log('drop: ' + connectKey);
+                for (var i in keyToUser) {
+                    if (i != connectKey) {
+                        user[keyToUser[i]].connection.write(JSON.stringify(data));
                     }
                 }
-                delete user[ip];
+                delete user[keyToUser[i]];
+                delete keyToUser[i];
             }
-            else if (jsonData.type == 'monster') {
-                if (!monster[jsonData.id]) {
-                    monster[jsonData.id] = {};
+            else if (data.type == 'monster') {
+                if (!monster[data.id]) {
+                    monster[data.id] = {};
                 }
-                if (jsonData.trapremain == -1) {
-                    for (var i in user) {
-                        if (user[i].id == jsonData.id) {
+                if (data.trapremain == -1) {
+                    for (var i in keyToUser) {
+                        if (user[keyToUser[i]].player.id == data.id) {
                             for (var j in trap) {
-                                user[i].connection.write(JSON.stringify(trap[j]), 'utf8');
+                                user[keyToUser[i]].connection.write(JSON.stringify(trap[j]));
                             }
                         }
                     }
                 }
-                monster[jsonData.id].convertCd = jsonData.convertCd;
-                monster[jsonData.id].trapremain = jsonData.trapremain;
-            }
-            else if (jsonData.type == 'trap') {
-                if (!trap[jsonData.id]) {
-                    trap[jsonData.id] = {};
+                else {
+                    monster[data.id].convertCd = data.convertCd;
+                    monster[data.id].trapremain = data.trapremain;
                 }
-                if (jsonData.x == -1) {
-                    for (var i in user) {
-                        if (user[i].id == jsonData.id) {
+            }
+            else if (data.type == 'trap') {
+                if (!trap[data.id]) {
+                    trap[data.id] = {};
+                }
+                if (data.x == -1) {
+                    for (var i in keyToUser) {
+                        if (user[keyToUser[i]].player.id == data.id) {
                             for (var j in trap) {
-                                user[i].connection.write(JSON.stringify(trap[j]), 'utf8');
+                                user[keyToUser[i]].connection.write(JSON.stringify(trap[j]));
                             }
                         }
                     }
                 }
-                trap[jsonData.id].x = jsonData.x;
-                trap[jsonData.id].y = jsonData.y;
+                else {
+                    trap[data.id].x = data.x;
+                    trap[data.id].y = data.y;
+                }
             }
             else {
                 // console.log(JSON.parse(data));
-                user[ip].player = JSON.parse(data);
-                user[ip].player.lastTime = broadcastTime;
+                user[keyToUser[i]].player = JSON.parse(data);
             }
+            user[keyToUser[i]].player.lastTime = broadcastTime;
         }
         catch (err) {
             log.info('receive data error');
@@ -135,37 +138,62 @@ sandbox.listen(amazeConfig.sandboxPort, function() {
 });
 
 function broadcast() {
-    for (var i in user) {
-        if ((broadcastTime - user[i].lastTime) > 300) {
-            return delete user[i];
+    for (var i in keyToUser) {
+        if ((broadcastTime - user[keyToUser[i]].lastTime) > 300) {
+            delete user[keyToUser[i]];
+            delete keyToUser[i];
         }
-        var sendToUser = '';
-        for (var j in user) {
-            var retStr = user[i].player;
-            if (i == j) {
-                retStr.id = 0 - user[i].player.id;
+        else {
+            // var sendToUser = '';
+            for (var j in keyToUser) {
+                var retStr = user[keyToUser[i]].player;
+                if (i == j) {
+                    retStr.id = 0 - retStr.id;
+                }
+                user[keyToUser[i]].connection.write(JSON.stringify(retStr));
+                // sendToUser += retStr;
             }
-            user[i].connection.write(JSON.stringify(retStr), 'utf8');
-            sendToUser += retStr;
+            // console.log('send to ' + i + ': ' + sendToUser);
         }
-//        console.log('send to ' + i + ': ' + sendToUser);
     }
 }
 function timeout() {
-    broadcast();
+    for (var i in keyToUser) {
+        var player1Pos = { x: user[keyToUser[i]].player.x, y: user[keyToUser[i]].player.y };
+        for (var j in monster) {
+            var player2Pos = { x: user[j].player.x, y: user[j].player.y };
+            if (checkDistance(player1Pos, player2Pos, 15)) {
+                var retStr = user[keyToUser[i]].player;
+                retSter.type = 'dead';
+                for (var k in keyToUser) {
+                    user[keyToUser[k]].connection.write(JSON.stringify(retStr));
+                }
+            }
+            if (checkBlockDistance(player1Pos, player2Pos, 4, 9)) {
+                var retStr = user[keyToUser[i]].player;
+                retSter.type = 'trapped';
+                for (var k in keyToUser) {
+                    user[keyToUser[k]].connection.write(JSON.stringify(retStr));
+                }
+            }
+        }
+    }
     broadcastTime ++;
     setTimeout(timeout, 30);
 }
-function waitForReconnect(ip) {
-    if (user[ip].online === true) {
-        return log.info('reconnect: ' + ip);
+function checkDistance(pos1, pos2, limit) {
+    if ((pos1.x * pos1.x) + (pos1.y * pos1.y) < (limit * limit)) {
+        return true;
     }
-    if (user[ip].restTime <= 0) {
-        log.info('truly disconnect: ' + ip);
-        return delete user[ip];
-    }
-    user[ip].restTime -= 1;
-    log.info('wait ' + ip + ': ' + user[ip].restTime);
-    setTimeout('waitForReconnect(' + ip + ')', 1000);
+    return false;
 }
+function checkBlockDistance(pos1, pos2, edge1, edge2) {
+    if (Math.max(pos1.x, pos2.x) <= Math.min(pos1.x + edge1, pos2.x + edge2)) {
+        if (Math.max(pos1.y, pos2.y) <= Math.min(pos1.y + edge1, pos2.y + edge2)) {
+            return true;
+        }        
+    }
+    return false;
+}
+
 timeout();
