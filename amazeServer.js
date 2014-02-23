@@ -56,46 +56,52 @@ var socket = require('net').createServer(function(connect) {
     })
     connect.on('data', function(dataR) {
         dataR = dataR.toString();
+        // log.info(dataR);
         var dataArr = dataR.split('}{');
         if (dataArr.length > 1) {
             dataArr[0] += '}';
-            for (var i = 0; i < dataArr.length-1; i++) {
+            for (var i = 1; i < dataArr.length-1; i++) {
                 dataArr[i] = '{' + dataArr[i] + '}';
             }
             dataArr[dataArr.length - 1] = '{' + dataArr[dataArr.length - 1];
         }
+        log.info(dataArr);
         for (var i = 0; i < dataArr.length; i++) {
             //log.info(dataArr[i]);
-            var data = JSON.parse(dataArr[i]);
-            if (data.type == 'drop') {
-                log.info('drop: ' + thisUser);
-                for (var i in user) {
-                    if (i != thisUser) {
-                        user[i].connection.write(JSON.stringify(data));
-                    }
-                }
-                delete user[thisUser];
-            }
-            else if (data.type == 'monster') {
-                // Todo
-            }
-            else if (data.type == 'trap') {
-                if (data.x == -1) {
+            try {
+                var data = JSON.parse(dataArr[i]);
+                if (data.type == 'drop') {
+                    log.info('drop: ' + thisUser);
                     for (var i in user) {
-                        for (var j = 0; j < trap.length; j++) {
-                            user[i].connection.write(JSON.stringify(trap[j]));
+                        if (i != thisUser) {
+                            user[i].connection.write(JSON.stringify(data));
                         }
                     }
+                    delete user[thisUser];
                 }
-                else {
-                    trap.push(data);
+                else if (data.type == 'monster') {
+                    // Todo
                 }
+                else if (data.type == 'trap') {
+                    if (data.x == -1) {
+                        for (var i in user) {
+                            for (var j = 0; j < trap.length; j++) {
+                                user[i].connection.write(JSON.stringify(trap[j]));
+                            }
+                        }
+                    }
+                    else {
+                        trap.push(data);
+                    }
+                }
+                else if (data.type == 'pos') {
+                    // log.info(JSON.stringify(data));
+                    user[thisUser].player = data;
+                    user[thisUser].lastTime = broadcastTime;
+                }
+            } catch (err) {
+                log.info(err);
             }
-            else if (data.type == 'pos') {
-                log.info(JSON.stringify(data));
-                user[thisUser].player = data;
-            }
-            user[thisUser].lastTime = broadcastTime;
         }
     })
 });
@@ -117,15 +123,9 @@ sandbox.listen(amazeConfig.sandboxPort, function() {
 function broadcast() {
     for (var i in user) {
         for (var j in user) {
-            var playerCopy = {};
-            for (var k in user[j].player) {
-                    playerCopy[k] = user[j].player[k];
-                }
-            if (i == j) {
-                playerCopy.id = 0 - playerCopy.id;
-            }
-            // log.info(playerCopy);
-            user[i].connection.write(JSON.stringify(playerCopy));
+            user[j].player.id = 0 - user[j].player.id;
+            user[i].connection.write(JSON.stringify(user[j].player));
+            user[j].player.id = 0 - user[j].player.id;
         }
     }
 }
@@ -151,6 +151,7 @@ function broadcastTimeout() {
                     for (var k in user) {
                         user[k].connection.write(JSON.stringify(playerCopy));
                     }
+                    playerCopy.type = 'pos';
                 }
             }
         }
