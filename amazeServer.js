@@ -58,10 +58,11 @@ var socket = require('net').createServer(function(connect) {
         dataR = dataR.toString();
         var dataArr = dataR.split('}{');
         if (dataArr.length > 1) {
-            dataArr[0] = dataArr[0] + '}';
-            for (var i = 1; i < dataArr.length; i++) {
-                dataArr[i] = '{' + dataArr[i];
+            dataArr[0] += '}';
+            for (var i = 0; i < dataArr.length-1; i++) {
+                dataArr[i] = '{' + dataArr[i] + '}';
             }
+            dataArr[dataArr.length - 1] = '{' + dataArr[dataArr.length - 1];
         }
         for (var i = 0; i < dataArr.length; i++) {
             //log.info(dataArr[i]);
