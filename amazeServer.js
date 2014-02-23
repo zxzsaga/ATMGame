@@ -44,11 +44,11 @@ var socket = require('net').createServer(function(connect) {
             seed: seed,
             x: -1,
             y: -1,
-            ghost: 0,
-            zombie: 0,
-            name: 0,
+            ghost: false,
+            zombie: false,
+            name: '',
             room: 0,
-            alive: 0,
+            alive: false,
         };
         log.info('new user: ' + connectKey);
     }
@@ -71,8 +71,8 @@ var socket = require('net').createServer(function(connect) {
                         user[keyToUser[i]].connection.write(JSON.stringify(data));
                     }
                 }
-                delete user[keyToUser[i]];
-                delete keyToUser[i];
+                delete user[keyToUser[connectKey]];
+                delete keyToUser[connectKey];
             }
             else if (data.type == 'monster') {
                 /*
@@ -106,11 +106,14 @@ var socket = require('net').createServer(function(connect) {
                     trap.push(data);
                 }
             }
-            else {
+            else if (data.type == 'pos') {
+                //console.log(1);
                 // console.log(JSON.parse(data));
-                user[keyToUser[i]].player = JSON.parse(data);
+                // console.log(data);
+                user[keyToUser[connectKey]].player = data;
+                //console.log(2);
             }
-            user[keyToUser[i]].lastTime = broadcastTime;
+            user[keyToUser[connectKey]].lastTime = broadcastTime;
         }
         catch (err) {
             log.info('receive data error');
