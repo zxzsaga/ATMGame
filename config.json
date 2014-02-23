@@ -9,5 +9,9 @@
         "socketPort": 23456,
         "sandboxPort": 843,
         "public": "simpleMaze2/bin-release"
+    },
+    "zhuogui": {
+        "port": 8001,
+        "public": "zhuogui"
     }
 }
