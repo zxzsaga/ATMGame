@@ -22,11 +22,12 @@ app.get('/', function(req, res) {
     res.render('Game.html');
 });
 
-
 var user = {};
 var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
 var playerCode = 1;
+var broadcastTime = 0;
 var globalIp = {};
+
 var socket = require('net').createServer(function(connect) {
     // log.info('connect: ' + ip);
     var ip = connect.remoteAddress;
@@ -36,16 +37,18 @@ var socket = require('net').createServer(function(connect) {
         user[ip].player = {
             type: 'pos',
             id: playerCode,
-            x: seed,
-            y: 0,
+            seed: seed,
+            x: -1,
+            y: -1,
             ghost: 0,
             zombie: 0,
-            key: 0,
             name: 0,
             room: 0,
-            alive: 0
+            alive: 0,
         };
         playerCode += 1;
+        user[ip].lastTime = 0;
+        user[ip].id = user[ip].player.id;
         log.info('new user: ' + ip);
     }
     user[ip].connection = connect;
@@ -64,10 +67,22 @@ var socket = require('net').createServer(function(connect) {
     connect.on('data', function(data) {
         try {
             var jsonData = JSON.parse(data);
-            console.log(JSON.parse(data));
-            user[ip].player = JSON.parse(data);
+            if (jsonData.type == 'drop') {
+                console.log('drop: ' + ip);
+                for (var i in user) {
+                    if (i != ip) {
+                        user[i].connection.write(JSON.stringify(data), 'utf8');
+                    }
+                }
+                delete user[ip];
+            }
+            else {
+                // console.log(JSON.parse(data));
+                user[ip].player = JSON.parse(data);
+            }
         }
         catch (err) {
+            log.info('receive data error');
         }
     })
 });
@@ -89,37 +104,25 @@ sandbox.listen(amazeConfig.sandboxPort, function() {
 
 function broadcast() {
     for (var i in user) {
+        if ((broadcastTime - user[i].lastTime) > 300) {
+            return delete user[i];
+        }
         var sendToUser = '';
         for (var j in user) {
+            var retStr = user[i].player;
             if (i == j) {
-                var retStr = JSON.stringify(
-                    {
-                        type: user[i].player.type,
-                        id: 0 - user[i].player.id,
-                        x: seed,
-                        y: user[i].player.y,
-                        ghost: user[i].player.ghost,
-                        zombie: user[i].player.zombie,
-                        key: user[i].player.key,
-                        name: user[i].player.name,
-                        room: user[i].player.room,
-                        alive: user[i].player.alive
-                    }
-                );
-                user[i].connection.write(retStr, 'utf8');
-                sendToUser += retStr;
+                retStr.id = 0 - user[i].player.id;
             }
-            else {
-                user[i].connection.write(JSON.stringify(user[j].player), 'utf8');
-                sendToUser += JSON.stringify(user[j].player);
-            }
+            user[i].connection.write(JSON.stringify(retStr), 'utf8');
+            user[i].lastTime ++;
+            sendToUser += retStr;
         }
 //        console.log('send to ' + i + ': ' + sendToUser);
     }
 }
 function timeout() {
-    
     broadcast();
+    broadcastTime ++;
     setTimeout(timeout, 30);
 }
 function waitForReconnect(ip) {
