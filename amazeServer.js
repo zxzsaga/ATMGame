@@ -143,7 +143,7 @@ function broadcast() {
             delete keyToUser[i];
         }
         else {
-            // var sendToUser = '';
+            var sendToUser = '';
             for (var j in keyToUser) {
                 var retStr = {};
                 for (var k in user[keyToUser[i]].player) {
@@ -152,10 +152,10 @@ function broadcast() {
                 if (i == j) {
                     retStr.id = 0 - retStr.id;
                 }
-                user[keyToUser[i]].connection.write(JSON.stringify(retStr));
-                // sendToUser += JSON.stringify(retStr);
+                user[keyToUser[j]].connection.write(JSON.stringify(retStr));
+                sendToUser += JSON.stringify(retStr);
             }
-            // console.log('send to ' + i + ': ' + sendToUser);
+            console.log('send to ' + i + ': ' + sendToUser);
         }
     }
 }
