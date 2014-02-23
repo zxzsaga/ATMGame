@@ -24,7 +24,7 @@ app.get('/', function(req, res) {
 var user = {};
 var userNum = 1;
 var monster = {};
-var trap = {};
+var trap = [];
 var broadcastTime = 0;
 var keyToUser = {}; // { key: usernum }
 
@@ -75,6 +75,7 @@ var socket = require('net').createServer(function(connect) {
                 delete keyToUser[i];
             }
             else if (data.type == 'monster') {
+                /*
                 if (!monster[data.id]) {
                     monster[data.id] = {};
                 }
@@ -91,30 +92,25 @@ var socket = require('net').createServer(function(connect) {
                     monster[data.id].convertCd = data.convertCd;
                     monster[data.id].trapremain = data.trapremain;
                 }
+                */
             }
             else if (data.type == 'trap') {
-                if (!trap[data.id]) {
-                    trap[data.id] = {};
-                }
                 if (data.x == -1) {
                     for (var i in keyToUser) {
-                        if (user[keyToUser[i]].player.id == data.id) {
-                            for (var j in trap) {
-                                user[keyToUser[i]].connection.write(JSON.stringify(trap[j]));
-                            }
+                        for (var j = 0; j < trap.length; j++) {
+                            user[keyToUser[i]].connection.write(JSON.stringify(trap));
                         }
                     }
                 }
                 else {
-                    trap[data.id].x = data.x;
-                    trap[data.id].y = data.y;
+                    trap.push(data);
                 }
             }
             else {
                 // console.log(JSON.parse(data));
                 user[keyToUser[i]].player = JSON.parse(data);
             }
-            user[keyToUser[i]].player.lastTime = broadcastTime;
+            user[keyToUser[i]].lastTime = broadcastTime;
         }
         catch (err) {
             log.info('receive data error');
@@ -146,12 +142,15 @@ function broadcast() {
         else {
             // var sendToUser = '';
             for (var j in keyToUser) {
-                var retStr = user[keyToUser[i]].player;
+                var retStr = {};
+                for (var k in user[keyToUser[i]].player) {
+                    retStr[k] = user[keyToUser[i]].player[k];
+                }
                 if (i == j) {
                     retStr.id = 0 - retStr.id;
                 }
                 user[keyToUser[i]].connection.write(JSON.stringify(retStr));
-                // sendToUser += retStr;
+                // sendToUser += JSON.stringify(retStr);
             }
             // console.log('send to ' + i + ': ' + sendToUser);
         }
@@ -160,29 +159,41 @@ function broadcast() {
 function timeout() {
     for (var i in keyToUser) {
         var player1Pos = { x: user[keyToUser[i]].player.x, y: user[keyToUser[i]].player.y };
-        for (var j in monster) {
+        for (var j in user) {
             var player2Pos = { x: user[j].player.x, y: user[j].player.y };
-            if (checkDistance(player1Pos, player2Pos, 15)) {
-                var retStr = user[keyToUser[i]].player;
-                retSter.type = 'dead';
-                for (var k in keyToUser) {
-                    user[keyToUser[k]].connection.write(JSON.stringify(retStr));
+            if (!user[keyToUser[i]].player.ghost && user[j].player.zombie) {
+                if (checkDistance(player1Pos, player2Pos, 15)) {
+                    var retStr = {};
+                    for (var k in user[keyToUser[i]].player) {
+                        retStr[k] = user[keyToUser[i]].player[k];
+                    }
+                    retStr.type = 'dead';
+                    for (var k in keyToUser) {
+                        user[keyToUser[k]].connection.write(JSON.stringify(retStr));
+                    }
                 }
             }
+        }
+        for (var j = 0; j < trap.length; j++) {
+            var player2Pos = { x: trap[j].x, y: trap[j].y };
             if (checkBlockDistance(player1Pos, player2Pos, 4, 9)) {
-                var retStr = user[keyToUser[i]].player;
-                retSter.type = 'trapped';
+                var retStr = {};
+                for (var k in user[keyToUser[i]].player) {
+                    retStr[k] = user[keyToUser[i]].player[k];
+                }
+                retStr.type = 'trapped';
                 for (var k in keyToUser) {
                     user[keyToUser[k]].connection.write(JSON.stringify(retStr));
                 }
             }
         }
     }
+    broadcast();
     broadcastTime ++;
     setTimeout(timeout, 30);
 }
 function checkDistance(pos1, pos2, limit) {
-    if ((pos1.x * pos1.x) + (pos1.y * pos1.y) < (limit * limit)) {
+    if ((pos1.x - pos2.x) * (pos1.x - pos2.x) + (pos1.y - pos2.y) * (pos1.y - pos2.y) < limit * limit) {
         return true;
     }
     return false;
@@ -195,5 +206,4 @@ function checkBlockDistance(pos1, pos2, edge1, edge2) {
     }
     return false;
 }
-
 timeout();
