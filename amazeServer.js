@@ -42,7 +42,7 @@ var socket = require('net').createServer(function(connect) {
             zombie: false,
             name: '',
             room: 0,
-            alive: false,
+            alive: false
         },
         connection: connect,
         lastTime: broadcastTime
@@ -54,9 +54,18 @@ var socket = require('net').createServer(function(connect) {
         log.info('error: ' + thisUser);
         log.info(data);
     })
-    connect.on('data', function(data) {
-        try {
-            data = JSON.parse(data);
+    connect.on('data', function(dataR) {
+        dataR = dataR.toString();
+        var dataArr = dataR.split('}{');
+        if (dataArr.length > 1) {
+            dataArr[0] = dataArr[0] + '}';
+            for (var i = 1; i < dataArr.length; i++) {
+                dataArr[i] = '{' + dataArr[i];
+            }
+        }
+        for (var i = 0; i < dataArr.length; i++) {
+            //log.info(dataArr[i]);
+            var data = JSON.parse(dataArr[i]);
             if (data.type == 'drop') {
                 log.info('drop: ' + thisUser);
                 for (var i in user) {
@@ -82,15 +91,10 @@ var socket = require('net').createServer(function(connect) {
                 }
             }
             else if (data.type == 'pos') {
-                // log.info(data);
+                log.info(JSON.stringify(data));
                 user[thisUser].player = data;
             }
             user[thisUser].lastTime = broadcastTime;
-        }
-        catch (err) {
-            connect.write('server parse JSON error');
-            log.info('receive data error');
-            log.info(err);
         }
     })
 });
@@ -127,7 +131,7 @@ function broadcast() {
 
 function broadcastTimeout() {
     for (var i in user) {
-        if ((broadcastTime - user[i].lastTime) > 300) {
+        if ((broadcastTime - user[i].lastTime) > 1800) {
             log.info('kick: ' + i);
             delete user[i];
         }
@@ -153,6 +157,7 @@ function broadcastTimeout() {
             var player2Pos = { x: trap[j].x, y: trap[j].y };
             if (checkBlockDistance(player1Pos, player2Pos, 4, 9)) {
                 var trappedMsg = trap[j];
+                trappedMsg.type = 'trapped';
                 for (var k in user) {
                     user[k].connection.write(JSON.stringify(trappedMsg));
                 }
