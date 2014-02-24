@@ -159,15 +159,17 @@ function broadcastTimeout() {
                 }
             }
         }
-        for (var j = 0; j < trap.length; j++) {
-            var player2Pos = { x: trap[j].x, y: trap[j].y };
-            if (checkBlockDistance(player1Pos, player2Pos, 4, 9)) {
-                var trappedMsg = trap[j];
-                trap[j] = trap[trap.length - 1];
-                trap.pop();
-                trappedMsg.type = 'trapped';
-                for (var k in user) {
-                    user[k].connection.write(JSON.stringify(trappedMsg));
+        if (!user[i].player.ghost) {
+            for (var j = 0; j < trap.length; j++) {
+                var player2Pos = { x: trap[j].x, y: trap[j].y };
+                if (checkBlockDistance(player1Pos, player2Pos, 4, 9)) {
+                    var trappedMsg = trap[j];
+                    trap[j] = trap[trap.length - 1];
+                    trap.pop();
+                    trappedMsg.type = 'trapped';
+                    for (var k in user) {
+                        user[k].connection.write(JSON.stringify(trappedMsg));
+                    }
                 }
             }
         }
