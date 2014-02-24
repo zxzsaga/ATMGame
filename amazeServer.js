@@ -29,6 +29,7 @@ var broadcastTime = 0;
 var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
 
 var socket = require('net').createServer(function(connect) {
+    socket.bufferSize = 512;
     userCount ++;
     var thisUser = userCount;
     user[thisUser] = {

@@ -1,6 +1,6 @@
 'use strict';
 
-var spawn = require('child_process').spawn;
+//var spawn = require('child_process').spawn;
 var fs = require('fs');
 var express = require('express'), app = express();
 var connect = require('connect'); // use for parse response body.
@@ -9,7 +9,7 @@ var Log = require('log'), log = new Log('info');
 var webConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).web;
 var UserDAO = require('./app/DAO/UserDAO').UserDAO;
 
-var amazeServer;
+//var amazeServer;
 
 app.use(express.cookieParser());
 app.use(connect.urlencoded());
