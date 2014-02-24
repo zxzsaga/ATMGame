@@ -1,0 +1,91 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>ViewPortBounds.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptASDoc">/**
+     * Used by layout algorithms for determining the bounds in which to position
+     * and size items.
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">ViewPortBounds</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">ViewPortBounds</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The x position of the view port, in pixels.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">x</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The y position of the view port, in pixels.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">y</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The horizontal scroll position of the view port, in pixels.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">scrollX</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The vertical scroll position of the view port, in pixels.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">scrollY</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The explicit width of the view port, in pixels. If &lt;code&gt;NaN&lt;/code&gt;,
+         * there is no explicit width value.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">explicitWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The explicit height of the view port, in pixels. If &lt;code&gt;NaN&lt;/code&gt;,
+         * there is no explicit height value.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">explicitHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum width of the view port, in pixels. Should be 0 or
+         * a positive number less than infinity.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum width of the view port, in pixels. Should be 0 or
+         * a positive number less than infinity.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The maximum width of the view port, in pixels. Should be 0 or
+         * a positive number, including infinity.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">POSITIVE_INFINITY</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The maximum height of the view port, in pixels. Should be 0 or
+         * a positive number, including infinity.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">POSITIVE_INFINITY</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

@@ -1,0 +1,565 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>TiledImage.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IValidating</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ValidationQueue</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getDisplayObjectDepthFromStage</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Matrix</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Rectangle</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RenderSupport</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Starling</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Image</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">QuadBatch</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Sprite</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">textures</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Texture</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">textures</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TextureSmoothing</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">MatrixUtil</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Tiles a texture to fill the specified bounds.
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">TiledImage</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">Sprite</span> <span class="ActionScriptReserved">implements</span> <span class="ActionScriptDefault_Text">IValidating</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span>:<span class="ActionScriptDefault_Text">Point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HELPER_MATRIX</span>:<span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Matrix</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">TiledImage</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">texture</span>:<span class="ActionScriptDefault_Text">Texture</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">textureScale</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 1<span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Rectangle</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">textureScale</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">texture</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">texture</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializeWidthAndHeight</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">QuadBatch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchable</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FLATTEN</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">flattenHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ADDED_TO_STAGE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">addedToStageHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_propertiesChanged</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_layoutChanged</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+        
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_hitArea</span>:<span class="ActionScriptDefault_Text">Rectangle</span>;
+
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_batch</span>:<span class="ActionScriptDefault_Text">QuadBatch</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_image</span>:<span class="ActionScriptDefault_Text">Image</span>;
+
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_originalImageWidth</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_originalImageHeight</span>:<span class="ActionScriptDefault_Text">Number</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_width</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_height</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_texture</span>:<span class="ActionScriptDefault_Text">Texture</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * The texture to tile.
+         *
+         * &lt;p&gt;In the following example, the texture is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * image.texture = Texture.fromBitmapData( bitmapData );&lt;/listing&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">texture</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Texture</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_texture</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">texture</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Texture</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> 
+        <span class="ActionScriptBracket/Brace">{</span> 
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ArgumentError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"Texture cannot be null"</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_texture</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_texture</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Image</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchable</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">texture</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">readjustSize</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">frame</span>:<span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">frame</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">frame</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">frame</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_smoothing</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">TextureSmoothing</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">BILINEAR</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * The smoothing value to pass to the tiled images.
+         *
+         * &lt;p&gt;In the following example, the smoothing is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * image.smoothing = TextureSmoothing.NONE;&lt;/listing&gt;
+         *
+         * @default starling.textures.TextureSmoothing.BILINEAR
+         *
+         * @see starling.textures.TextureSmoothing
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">smoothing</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_smoothing</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">smoothing</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span> 
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">TextureSmoothing</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isValid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_smoothing</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ArgumentError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"Invalid smoothing mode: "</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_color</span>:<span class="ActionScriptDefault_Text">uint</span> <span class="ActionScriptOperator">=</span> 0xffffff;
+
+        <span class="ActionScriptASDoc">/**
+         * The color value to pass to the tiled images.
+         *
+         * &lt;p&gt;In the following example, the color is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * image.color = 0xff00ff;&lt;/listing&gt;
+         *
+         * @default 0xffffff
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">uint</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_color</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">color</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">uint</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_color</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_useSeparateBatch</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if the tiled images are batched normally by Starling or if
+         * they're batched separately.
+         *
+         * &lt;p&gt;In the following example, separate batching is disabled:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * image.useSeparateBatch = false;&lt;/listing&gt;
+         *
+         * @default true
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">useSeparateBatch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_useSeparateBatch</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">useSeparateBatch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_useSeparateBatch</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_useSeparateBatch</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_textureScale</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 1;
+        
+        <span class="ActionScriptASDoc">/**
+         * The amount to scale the texture. Useful for DPI changes.
+         *
+         * &lt;p&gt;In the following example, the texture scale is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * image.textureScale = 2;&lt;/listing&gt;
+         *
+         * @default 1
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">textureScale</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">textureScale</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_isValidating</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_isInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_validationQueue</span>:<span class="ActionScriptDefault_Text">ValidationQueue</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_depth</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> -1;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.core.IValidating#depth
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">depth</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_depth</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">override</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getBounds</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetSpace</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">resultRect</span>:<span class="ActionScriptDefault_Text">Rectangle</span><span class="ActionScriptOperator">=</span><span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Rectangle</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">resultRect</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">resultRect</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Rectangle</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minX</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">MAX_VALUE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">maxX</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">MAX_VALUE</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">minY</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">MAX_VALUE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">maxY</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">MAX_VALUE</span>;
+            
+            <span class="ActionScriptReserved">if</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetSpace</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptComment">// optimization
+</span>            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+                <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+                <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getTransformationMatrix</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetSpace</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_MATRIX</span><span class="ActionScriptBracket/Brace">)</span>;
+
+                <span class="ActionScriptDefault_Text">MatrixUtil</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">transformCoords</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_MATRIX</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+                <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+
+                <span class="ActionScriptDefault_Text">MatrixUtil</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">transformCoords</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_MATRIX</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+                <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+
+                <span class="ActionScriptDefault_Text">MatrixUtil</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">transformCoords</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_MATRIX</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+                <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+
+                <span class="ActionScriptDefault_Text">MatrixUtil</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">transformCoords</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_MATRIX</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minX</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxX</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span>;
+                <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minY</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">minY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+                <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">maxY</span> : <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptDefault_Text">resultRect</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minX</span>;
+            <span class="ActionScriptDefault_Text">resultRect</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">minY</span>;
+            <span class="ActionScriptDefault_Text">resultRect</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>  <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxX</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minX</span>;
+            <span class="ActionScriptDefault_Text">resultRect</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxY</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">minY</span>;
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">resultRect</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">hitTest</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">localPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">forTouch</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptOperator">=</span><span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">forTouch</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchable</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_hitArea</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">containsPoint</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">localPoint</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span> : <span class="ActionScriptReserved">null</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * Set both the width and height in one call.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setSize</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">width</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">height</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">width</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">height</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">flatten</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">flatten</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.core.IValidating#validate()
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isValidating</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptComment">//we were already validating, and something else told us to
+</span>                <span class="ActionScriptComment">//validate. that's bad.
+</span>                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isValidating</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">smoothing</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_smoothing</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">color</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_color</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">batchable</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_useSeparateBatch</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">reset</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">scaleX</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">scaleY</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageWidth</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">scaledTextureHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageHeight</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">xImageCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ceil</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">yImageCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ceil</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">scaledTextureHeight</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">imageCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xImageCount</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptDefault_Text">yImageCount</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xPosition</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yPosition</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nextXPosition</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xPosition</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nextYPosition</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">yPosition</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptDefault_Text">scaledTextureHeight</span>;
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">imageCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xPosition</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">yPosition</span>;
+
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">imageWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">nextXPosition</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">xPosition</span><span class="ActionScriptBracket/Brace">)</span> : <span class="ActionScriptDefault_Text">scaledTextureWidth</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">imageHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">nextYPosition</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_height</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptDefault_Text">yPosition</span><span class="ActionScriptBracket/Brace">)</span> : <span class="ActionScriptDefault_Text">scaledTextureHeight</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">imageWidth</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">imageHeight</span>;
+
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">xCoord</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">imageWidth</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">yCoord</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">imageHeight</span> <span class="ActionScriptOperator">/</span> <span class="ActionScriptDefault_Text">scaledTextureHeight</span>;
+                    <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">xCoord</span>;
+                    <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setTexCoords</span><span class="ActionScriptBracket/Brace">(</span>1<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+
+                    <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">yCoord</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setTexCoords</span><span class="ActionScriptBracket/Brace">(</span>3<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+
+                    <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> 0;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setTexCoords</span><span class="ActionScriptBracket/Brace">(</span>2<span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_batch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addImage</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_image</span><span class="ActionScriptBracket/Brace">)</span>;
+
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">nextXPosition</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_width</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">xPosition</span> <span class="ActionScriptOperator">=</span> 0;
+                        <span class="ActionScriptDefault_Text">nextXPosition</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span>;
+                        <span class="ActionScriptDefault_Text">yPosition</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nextYPosition</span>;
+                        <span class="ActionScriptDefault_Text">nextYPosition</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">scaledTextureHeight</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptReserved">else</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptDefault_Text">xPosition</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nextXPosition</span>;
+                        <span class="ActionScriptDefault_Text">nextXPosition</span> <span class="ActionScriptOperator">+=</span> <span class="ActionScriptDefault_Text">scaledTextureWidth</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_propertiesChanged</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isInvalid</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isValidating</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isInvalid</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">initializeWidthAndHeight</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageWidth</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_originalImageHeight</span> <span class="ActionScriptOperator">*</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_textureScale</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">flattenHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addedToStageHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_depth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">getDisplayObjectDepthFromStage</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">ValidationQueue</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">forStarling</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_validationQueue</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

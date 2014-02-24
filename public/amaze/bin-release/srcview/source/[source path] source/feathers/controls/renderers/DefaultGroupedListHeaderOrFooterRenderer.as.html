@@ -1,0 +1,1524 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>DefaultGroupedListHeaderOrFooterRenderer.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">renderers</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">GroupedList</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ImageLoader</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FeathersControl</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IFeathersControl</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ITextRenderer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IValidating</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">PropertyProxy</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * The default renderer used for headers and footers in a GroupedList
+     * control.
+     *
+     * @see feathers.controls.GroupedList
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">DefaultGroupedListHeaderOrFooterRenderer</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">FeathersControl</span> <span class="ActionScriptReserved">implements</span> <span class="ActionScriptDefault_Text">IGroupedListHeaderOrFooterRenderer</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned horizontally to the left edge of the renderer.
+         *
+         * @see #horizontalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_LEFT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"left"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned horizontally to the center of the renderer.
+         *
+         * @see #horizontalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_CENTER</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"center"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned horizontally to the right edge of the renderer.
+         *
+         * @see #horizontalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_RIGHT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"right"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be justified horizontally, filling the entire width
+         * of the renderer, minus padding.
+         *
+         * @see #horizontalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_JUSTIFY</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"justify"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned vertically to the top edge of the renderer.
+         *
+         * @see #verticalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_TOP</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"top"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned vertically to the middle of the renderer.
+         *
+         * @see #verticalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_MIDDLE</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"middle"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be aligned vertically to the bottom edge of the renderer.
+         *
+         * @see #verticalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_BOTTOM</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"bottom"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The content will be justified vertically, filling the entire height
+         * of the renderer, minus padding.
+         *
+         * @see #verticalAlign
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_JUSTIFY</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"justify"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The default value added to the &lt;code&gt;nameList&lt;/code&gt; of the content
+         * label.
+         *
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_CONTENT_LABEL</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"feathers-header-footer-renderer-content-label"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">defaultImageLoaderFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">ImageLoader</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ImageLoader</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The value added to the &lt;code&gt;nameList&lt;/code&gt; of the content label.
+         *
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">contentLabelName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_CONTENT_LABEL</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">DefaultGroupedListHeaderOrFooterRenderer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">contentImage</span>:<span class="ActionScriptDefault_Text">ImageLoader</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">contentLabel</span>:<span class="ActionScriptDefault_Text">ITextRenderer</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">content</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_data</span>:<span class="ActionScriptDefault_Text">Object</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">data</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_data</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">data</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_data</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_data</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_groupIndex</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> -1;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">groupIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_groupIndex</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">groupIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_groupIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_layoutIndex</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> -1;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">layoutIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutIndex</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">layoutIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layoutIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_owner</span>:<span class="ActionScriptDefault_Text">GroupedList</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">owner</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">GroupedList</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_owner</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">owner</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">GroupedList</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_owner</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_owner</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_horizontalAlign</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_LEFT</span>;
+
+        <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Inspectable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"String"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">enumeration</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"left,center,right,justify"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+        <span class="ActionScriptASDoc">/**
+         * The location where the renderer's content is aligned horizontally
+         * (on the x-axis).
+         *
+         * &lt;p&gt;In the following example, the horizontal alignment is changed to
+         * right:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.horizontalAlign = DefaultGroupedListHeaderOrFooterRenderer.HORIZONTAL_ALIGN_RIGHT;&lt;/listing&gt;
+         *
+         * @default DefaultGroupedListHeaderOrFooterRenderer.HORIZONTAL_ALIGN_LEFT
+         *
+         * @see #HORIZONTAL_ALIGN_LEFT
+         * @see #HORIZONTAL_ALIGN_CENTER
+         * @see #HORIZONTAL_ALIGN_RIGHT
+         * @see #HORIZONTAL_ALIGN_JUSTIFY
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">horizontalAlign</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_horizontalAlign</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">horizontalAlign</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_horizontalAlign</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_horizontalAlign</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_verticalAlign</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_MIDDLE</span>;
+
+        <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Inspectable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"String"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">enumeration</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"top,middle,bottom,justify"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+        <span class="ActionScriptASDoc">/**
+         * The location where the renderer's content is aligned vertically (on
+         * the y-axis).
+         *
+         * &lt;p&gt;In the following example, the vertical alignment is changed to
+         * bottom:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.verticalAlign = DefaultGroupedListHeaderOrFooterRenderer.HORIZONTAL_ALIGN_BOTTOM;&lt;/listing&gt;
+         *
+         * @default DefaultGroupedListHeaderOrFooterRenderer.VERTICAL_ALIGN_MIDDLE
+         *
+         * @see #VERTICAL_ALIGN_TOP
+         * @see #VERTICAL_ALIGN_MIDDLE
+         * @see #VERTICAL_ALIGN_BOTTOM
+         * @see #VERTICAL_ALIGN_JUSTIFY
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">verticalAlign</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">_verticalAlign</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">verticalAlign</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_verticalAlign</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_verticalAlign</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentField</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"content"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The field in the item that contains a display object to be positioned
+         * in the content position of the renderer. If you wish to display a
+         * texture in the content position, it's better for performance to use
+         * &lt;code&gt;contentSourceField&lt;/code&gt; instead.
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content field is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentField = "header";&lt;/listing&gt;
+         *
+         * @default "content"
+         *
+         * @see #contentSourceField
+         * @see #contentFunction
+         * @see #contentSourceFunction
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentFunction</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function that returns a display object to be positioned in the
+         * content position of the renderer. If you wish to display a texture in
+         * the content position, it's better for performance to use
+         * &lt;code&gt;contentSourceFunction&lt;/code&gt; instead.
+         *
+         * &lt;p&gt;The function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function( item:Object ):DisplayObject&lt;/pre&gt;
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content function is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentFunction = function( item:Object ):DisplayObject
+         * {
+         *    if(item in cachedContent)
+         *    {
+         *        return cachedContent[item];
+         *    }
+         *    var content:DisplayObject = createContentForHeader( item );
+         *    cachedContent[item] = content;
+         *    return content;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #contentField
+         * @see #contentSourceField
+         * @see #contentSourceFunction
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentFunction</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentFunction</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentFunction</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentSourceField</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"source"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The field in the data that contains a &lt;code&gt;starling.textures.Texture&lt;/code&gt;
+         * or a URL that points to a bitmap to be used as the renderer's
+         * content. The renderer will automatically manage and reuse an internal
+         * &lt;code&gt;ImageLoader&lt;/code&gt; sub-component and this value will be passed
+         * to the &lt;code&gt;source&lt;/code&gt; property. The &lt;code&gt;ImageLoader&lt;/code&gt; may
+         * be customized by changing the &lt;code&gt;contentLoaderFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;Using an content source will result in better performance than
+         * passing in an &lt;code&gt;ImageLoader&lt;/code&gt; or &lt;code&gt;Image&lt;/code&gt; through
+         * &lt;code&gt;contentField&lt;/code&gt; or &lt;code&gt;contentFunction&lt;/code&gt; because the
+         * renderer can avoid costly display list manipulation.&lt;/p&gt;
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content source field is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentSourceField = "texture";&lt;/listing&gt;
+         *
+         * @default "source"
+         *
+         * @see feathers.controls.ImageLoader#source
+         * @see #contentLoaderFactory
+         * @see #contentSourceFunction
+         * @see #contentField
+         * @see #contentFunction
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentSourceField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentSourceField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentSourceFunction</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function used to generate a &lt;code&gt;starling.textures.Texture&lt;/code&gt;
+         * or a URL that points to a bitmap to be used as the renderer's
+         * content. The renderer will automatically manage and reuse an internal
+         * &lt;code&gt;ImageLoader&lt;/code&gt; sub-component and this value will be passed
+         * to the &lt;code&gt;source&lt;/code&gt; property. The &lt;code&gt;ImageLoader&lt;/code&gt; may
+         * be customized by changing the &lt;code&gt;contentLoaderFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;Using an content source will result in better performance than
+         * passing in an &lt;code&gt;ImageLoader&lt;/code&gt; or &lt;code&gt;Image&lt;/code&gt; through
+         * &lt;code&gt;contentField&lt;/code&gt; or &lt;code&gt;contentFunction&lt;/code&gt; because the
+         * renderer can avoid costly display list manipulation.&lt;/p&gt;
+         *
+         * &lt;p&gt;The function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function( item:Object ):Object&lt;/pre&gt;
+         *
+         * &lt;p&gt;The return value is a valid value for the &lt;code&gt;source&lt;/code&gt;
+         * property of an &lt;code&gt;ImageLoader&lt;/code&gt; component.&lt;/p&gt;
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentSourceField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content source function is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentSourceFunction = function( item:Object ):Object
+         * {
+         *    return "http://www.example.com/thumbs/" + item.name + "-thumb.png";
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see feathers.controls.ImageLoader#source
+         * @see #contentLoaderFactory
+         * @see #contentSourceField
+         * @see #contentField
+         * @see #contentFunction
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentSourceFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceFunction</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentSourceFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentSourceFunction</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceFunction</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentLabelField</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"label"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The field in the item that contains a string to be displayed in a
+         * renderer-managed &lt;code&gt;Label&lt;/code&gt; in the content position of the
+         * renderer. The renderer will automatically reuse an internal
+         * &lt;code&gt;Label&lt;/code&gt; and swap the text when the data changes. This
+         * &lt;code&gt;Label&lt;/code&gt; may be skinned by changing the
+         * &lt;code&gt;contentLabelFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;Using an content label will result in better performance than
+         * passing in a &lt;code&gt;Label&lt;/code&gt; through a &lt;code&gt;contentField&lt;/code&gt;
+         * or &lt;code&gt;contentFunction&lt;/code&gt; because the renderer can avoid
+         * costly display list manipulation.&lt;/p&gt;
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content label field is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentLabelField = "text";&lt;/listing&gt;
+         *
+         * @default "label"
+         *
+         * @see #contentLabelFactory
+         * @see #contentLabelFunction
+         * @see #contentField
+         * @see #contentFunction
+         * @see #contentSourceField
+         * @see #contentSourceFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentLabelField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentLabelField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentLabelFunction</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function that returns a string to be displayed in a
+         * renderer-managed &lt;code&gt;Label&lt;/code&gt; in the content position of the
+         * renderer. The renderer will automatically reuse an internal
+         * &lt;code&gt;Label&lt;/code&gt; and swap the text when the data changes. This
+         * &lt;code&gt;Label&lt;/code&gt; may be skinned by changing the
+         * &lt;code&gt;contentLabelFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;Using an content label will result in better performance than
+         * passing in a &lt;code&gt;Label&lt;/code&gt; through a &lt;code&gt;contentField&lt;/code&gt;
+         * or &lt;code&gt;contentFunction&lt;/code&gt; because the renderer can avoid
+         * costly display list manipulation.&lt;/p&gt;
+         *
+         * &lt;p&gt;The function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function( item:Object ):String&lt;/pre&gt;
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the content label function is customized:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentLabelFunction = function( item:Object ):String
+         * {
+         *    return item.category + " &gt; " + item.subCategory;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #contentLabelFactory
+         * @see #contentLabelField
+         * @see #contentField
+         * @see #contentFunction
+         * @see #contentSourceField
+         * @see #contentSourceFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentLabelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFunction</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentLabelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFunction</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFunction</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentLoaderFactory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">defaultImageLoaderFactory</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function that generates an &lt;code&gt;ImageLoader&lt;/code&gt; that uses the result
+         * of &lt;code&gt;contentSourceField&lt;/code&gt; or &lt;code&gt;contentSourceFunction&lt;/code&gt;.
+         * Useful for transforming the &lt;code&gt;ImageLoader&lt;/code&gt; in some way. For
+         * example, you might want to scale it for current DPI or apply pixel
+         * snapping.
+         *
+         * &lt;p&gt;In the following example, a custom content loader factory is passed
+         * to the renderer:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentLoaderFactory = function():ImageLoader
+         * {
+         *     var loader:ImageLoader = new ImageLoader();
+         *     loader.snapToPixels = true;
+         *     return loader;
+         * };&lt;/listing&gt;
+         *
+         * @default function():ImageLoader { return new ImageLoader(); }
+         *
+         * @see feathers.controls.ImageLoader
+         * @see #contentSourceField
+         * @see #contentSourceFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentLoaderFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLoaderFactory</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentLoaderFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLoaderFactory</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLoaderFactory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentLabelFactory</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function that generates an &lt;code&gt;ITextRenderer&lt;/code&gt; that uses the result
+         * of &lt;code&gt;contentLabelField&lt;/code&gt; or &lt;code&gt;contentLabelFunction&lt;/code&gt;.
+         * Can be used to set properties on the &lt;code&gt;ITextRenderer&lt;/code&gt;.
+         *
+         * &lt;p&gt;In the following example, a custom content label factory is passed
+         * to the renderer:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentLabelFactory = function():ITextRenderer
+         * {
+         *     var renderer:TextFieldTextRenderer = new TextFieldTextRenderer();
+         *     renderer.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+         *     renderer.embedFonts = true;
+         *     return renderer;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see feathers.core.ITextRenderer
+         * @see feathers.core.FeathersControl#defaultTextRendererFactory
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentLabelFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFactory</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentLabelFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFactory</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFactory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_contentLabelProperties</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A set of key/value pairs to be passed down to a content label.
+         *
+         * &lt;p&gt;If the subcomponent has its own subcomponents, their properties
+         * can be set too, using attribute &lt;code&gt;&amp;#64;&lt;/code&gt; notation. For example,
+         * to set the skin on the thumb which is in a &lt;code&gt;SimpleScrollBar&lt;/code&gt;,
+         * which is in a &lt;code&gt;List&lt;/code&gt;, you can use the following syntax:&lt;/p&gt;
+         * &lt;pre&gt;list.verticalScrollBarProperties.&amp;#64;thumbProperties.defaultSkin = new Image(texture);&lt;/pre&gt;
+         *
+         * &lt;p&gt;In the following example, a custom content label properties are
+         * customized:&lt;/p&gt;
+         * 
+         * &lt;listing version="3.0"&gt;
+         * renderer.contentLabelProperties.textFormat = new TextFormat( "Source Sans Pro", 16, 0x333333 );
+         * renderer.contentLabelProperties.embedFonts = true;&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see feathers.core.ITextRenderer
+         * @see #contentLabelField
+         * @see #contentLabelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">contentLabelProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">contentLabelProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">contentLabelProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">newValue</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">newValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newValue</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">contentLabelProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">contentLabelProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">originalBackgroundWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">originalBackgroundHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">currentBackgroundSkin</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_backgroundSkin</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A background to behind the component's content.
+         *
+         * &lt;p&gt;In the following example, the header renderers is given a
+         * background skin:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.backgroundSkin = new Image( texture );&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">backgroundSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">backgroundSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">parent</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptOperator">,</span> 0<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A background to display when the component is disabled.
+         *
+         * &lt;p&gt;In the following example, the header renderers is given a
+         * disabled background skin:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.backgroundDisabledSkin = new Image( texture );&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">parent</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptOperator">,</span> 0<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Quickly sets all padding properties to the same value. The
+         * &lt;code&gt;padding&lt;/code&gt; getter always returns the value of
+         * &lt;code&gt;paddingTop&lt;/code&gt;, but the other padding values may be
+         * different.
+         *
+         * &lt;p&gt;In the following example, the padding is set to 20 pixels:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.padding = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">padding</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">padding</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">paddingTop</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">paddingRight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">paddingBottom</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">paddingLeft</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_paddingTop</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the component's top edge and
+         * the component's content.
+         *
+         * &lt;p&gt;In the following example, the top padding is set to 20 pixels:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.paddingTop = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">paddingTop</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">paddingTop</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_paddingRight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the component's right edge
+         * and the component's content.
+         *
+         * &lt;p&gt;In the following example, the right padding is set to 20 pixels:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.paddingRight = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">paddingRight</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">paddingRight</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_paddingBottom</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the component's bottom edge
+         * and the component's content.
+         *
+         * &lt;p&gt;In the following example, the bottom padding is set to 20 pixels:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * renderer.paddingBottom = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">paddingBottom</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">paddingBottom</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_paddingLeft</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the component's left edge
+         * and the component's content.
+         * 
+         * &lt;p&gt;In the following example, the left padding is set to 20 pixels:&lt;/p&gt;
+         * 
+         * &lt;listing version="3.0"&gt;
+         * renderer.paddingLeft = 20;&lt;/listing&gt;
+         * 
+         * @default 0
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">paddingLeft</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">paddingLeft</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptComment">//the content may have come from outside of this class. it's up
+</span>            <span class="ActionScriptComment">//to that code to dispose of the content. in fact, if we disposed
+</span>            <span class="ActionScriptComment">//of it here, we might screw something up!
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptComment">//however, we need to dispose these, if they exist, since we made
+</span>            <span class="ActionScriptComment">//them here.
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Uses the content fields and functions to generate content for a
+         * specific group header or footer.
+         *
+         * &lt;p&gt;All of the content fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentTextureField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentLabelField&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;contentField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">itemToContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceFunction</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">source</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentSource</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">source</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">source</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentSourceField</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentSource</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">source</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFunction</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">labelResult</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelField</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentFunction</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentField</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">null</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">dataInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stylesInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stateInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STATE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sizeInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SIZE</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">stylesInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stateInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshBackgroundSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">dataInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">commitData</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">dataInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshContentLabelStyles</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptDefault_Text">sizeInvalid</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">autoSizeIfNeeded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">sizeInvalid</span>;
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">dataInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">sizeInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">sizeInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stateInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualHeight</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * If the component's dimensions have not been set explicitly, it will
+         * measure its content and determine an ideal size for itself. If the
+         * &lt;code&gt;explicitWidth&lt;/code&gt; or &lt;code&gt;explicitHeight&lt;/code&gt; member
+         * variables are set, those value will be used without additional
+         * measurement. If one is set, but not the other, the dimension with the
+         * explicit value will not be measured, but the other non-explicit
+         * dimension will still need measurement.
+         *
+         * &lt;p&gt;Calls &lt;code&gt;setSizeInternal()&lt;/code&gt; to set up the
+         * &lt;code&gt;actualWidth&lt;/code&gt; and &lt;code&gt;actualHeight&lt;/code&gt; member
+         * variables used for layout.&lt;/p&gt;
+         *
+         * &lt;p&gt;Meant for internal use, and subclasses may override this function
+         * with a custom implementation.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">autoSizeIfNeeded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">needsWidth</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">needsHeight</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">needsWidth</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">needsHeight</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setSizeInternal</span><span class="ActionScriptBracket/Brace">(</span>0<span class="ActionScriptOperator">,</span> 0<span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptComment">//special case for label to allow word wrap
+</span>                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">maxWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_maxWidth</span> : <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_horizontalAlign</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_JUSTIFY</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_verticalAlign</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_JUSTIFY</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IValidating</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">IValidating</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">needsWidth</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundWidth</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newWidth</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundWidth</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">needsHeight</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundHeight</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">max</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newHeight</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundHeight</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setSizeInternal</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newWidth</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">newHeight</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshBackgroundSkin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isEnabled</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_backgroundDisabledSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundWidth</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundHeight</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">originalBackgroundHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">currentBackgroundSkin</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">visible</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">commitData</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_owner</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">newContent</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">itemToContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_data</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newContent</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newContent</span>;
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshContentSource</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">source</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLoaderFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentImage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">source</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">source</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshContentLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">label</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">label</span> <span class="ActionScriptOperator">!==</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">factory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFactory</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelFactory</span> : <span class="ActionScriptDefault_Text">FeathersControl</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">defaultTextRendererFactory</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">ITextRenderer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">factory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">FeathersControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nameList</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">add</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabelName</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">text</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">label</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshContentLabelStyles</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">displayContentLabel</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">displayContentLabel</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyValue</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_contentLabelProperties</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                    <span class="ActionScriptDefault_Text">displayContentLabel</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">propertyValue</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contentLabel</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">maxWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">switch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_horizontalAlign</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_CENTER</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_RIGHT</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">HORIZONTAL_ALIGN_JUSTIFY</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingRight</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">default</span>: <span class="ActionScriptComment">//left
+</span>                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingLeft</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">switch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_verticalAlign</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_TOP</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_BOTTOM</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">case</span> <span class="ActionScriptDefault_Text">VERTICAL_ALIGN_JUSTIFY</span>:
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span>;
+                    <span class="ActionScriptReserved">break</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">default</span>: <span class="ActionScriptComment">//middle
+</span>                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">+</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingTop</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_paddingBottom</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">contentLabelProperties_onChange</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">proxy</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

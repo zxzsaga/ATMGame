@@ -1,0 +1,152 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>Radio.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IGroupedToggle</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ToggleGroup</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">errors</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IllegalOperationError</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Exclude</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"isToggle"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">kind</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"property"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * A toggleable control that exists in a set that requires a single,
+     * exclusive toggled item.
+     *
+     * &lt;p&gt;In the following example, a set of radios are created, along with a
+     * toggle group to group them together:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * var group:ToggleGroup = new ToggleGroup();
+     * group.addEventListener( Event.CHANGE, group_changeHandler );
+     *
+     * var radio1:Radio = new Radio();
+     * radio1.label = "One";
+     * radio1.toggleGroup = group;
+     * this.addChild( radio1 );
+     *
+     * var radio2:Radio = new Radio();
+     * radio2.label = "Two";
+     * radio2.toggleGroup = group;
+     * this.addChild( radio2 );
+     *
+     * var radio3:Radio = new Radio();
+     * radio3.label = "Three";
+     * radio3.toggleGroup = group;
+     * this.addChild( radio3 );&lt;/listing&gt;
+     *
+     * @see http://wiki.starling-framework.org/feathers/radio
+     * @see feathers.core.ToggleGroup
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">Radio</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">Button</span> <span class="ActionScriptReserved">implements</span> <span class="ActionScriptDefault_Text">IGroupedToggle</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * If a &lt;code&gt;Radio&lt;/code&gt; has not been added to a &lt;code&gt;ToggleGroup&lt;/code&gt;,
+         * it will automatically be added to this group. If the Radio's
+         * &lt;code&gt;toggleGroup&lt;/code&gt; property is set to a different group, it
+         * will be automatically removed from this group, if required.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">defaultRadioGroup</span>:<span class="ActionScriptDefault_Text">ToggleGroup</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ToggleGroup</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">Radio</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isToggle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ADDED_TO_STAGE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">radio_addedToStageHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">REMOVED_FROM_STAGE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">radio_removedFromStageHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">isToggle</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">throw</span> <span class="ActionScriptDefault_Text">IllegalOperationError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"Radio isToggle must always be true."</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_toggleGroup</span>:<span class="ActionScriptDefault_Text">ToggleGroup</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">toggleGroup</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">ToggleGroup</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">toggleGroup</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">ToggleGroup</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptComment">//a null toggle group will automatically add it to
+</span>            <span class="ActionScriptComment">//defaultRadioGroup. however, if toggleGroup is already
+</span>            <span class="ActionScriptComment">// defaultRadioGroup, then we really want to use null because
+</span>            <span class="ActionScriptComment">//otherwise we'd remove the radio from defaultRadioGroup and then
+</span>            <span class="ActionScriptComment">//immediately add it back because ToggleGroup sets the toggleGroup
+</span>            <span class="ActionScriptComment">//property to null when removing an item.
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptDefault_Text">defaultRadioGroup</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">defaultRadioGroup</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">radio_addedToStageHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toggleGroup</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">defaultRadioGroup</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">radio_removedFromStageHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">defaultRadioGroup</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_toggleGroup</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

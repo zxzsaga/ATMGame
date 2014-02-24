@@ -1,0 +1,81 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>IHierarchicalCollectionDataDescriptor.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">data</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptASDoc">/**
+     * An adapter interface to support any kind of data source in
+     * hierarchical collections.
+     *
+     * @see HierarchicalCollection
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptinterface">interface</span> <span class="ActionScriptDefault_Text">IHierarchicalCollectionDataDescriptor</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Determines if a node from the data source is a branch.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">isBranch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">node</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The number of items at the specified location in the data source.
+         *
+         * &lt;p&gt;The rest arguments are the indices that make up the location. If
+         * a location is omitted, the length returned will be for the root level
+         * of the collection.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getLength</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Returns the item at the specified location in the data source.
+         *
+         * &lt;p&gt;The rest arguments are the indices that make up the location.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getItemAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Replaces the item at the specified location with a new item.
+         *
+         * &lt;p&gt;The rest arguments are the indices that make up the location.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setItemAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">item</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Adds an item to the data source, at the specified location.
+         *
+         * &lt;p&gt;The rest arguments are the indices that make up the location.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addItemAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">item</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Removes the item at the specified location from the data source and
+         * returns it.
+         *
+         * &lt;p&gt;The rest arguments are the indices that make up the location.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeItemAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines which location the item appears at within the data source.
+         * If the item isn't in the data source, returns an empty &lt;code&gt;Vector.&amp;lt;int&amp;gt;&lt;/code&gt;.
+         *
+         * &lt;p&gt;The &lt;code&gt;rest&lt;/code&gt; arguments are optional indices to narrow
+         * the search.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getItemLocation</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">data</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">item</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">result</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">&gt;</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptOperator">...</span><span class="ActionScriptDefault_Text">rest</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">&gt;</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

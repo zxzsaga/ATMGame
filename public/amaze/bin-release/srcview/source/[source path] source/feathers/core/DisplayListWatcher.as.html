@@ -1,0 +1,493 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>DisplayListWatcher.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Dictionary</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">EventDispatcher</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Watches a container on the display list. As new display objects are
+     * added, and if they match a specific type, they will be passed to
+     * initializer functions to set properties, call methods, or otherwise
+     * modify them. Useful for initializing skins and styles on UI controls.
+     *
+     * &lt;p&gt;In the example below, the &lt;code&gt;buttonInitializer()&lt;/code&gt; function
+     * will be called when a &lt;code&gt;Button&lt;/code&gt; is added to the display list,
+     * and no values are specified in its &lt;code&gt;nameList&lt;/code&gt; that match other
+     * initializers:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * setInitializerForClass(Button, buttonInitializer);&lt;/listing&gt;
+     *
+     * &lt;p&gt;You can specify a value in the button's &lt;code&gt;nameList&lt;/code&gt; to call
+     * a different initializer for a button. You might do this to apply
+     * different skins for some buttons:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * var button:Button = new Button();
+     * button.label = "Click Me";
+     * button.nameList.add( Button.ALTERNATE_NAME_CALL_TO_ACTION );
+     * this.addChild( button );&lt;/listing&gt;
+     *
+     * &lt;p&gt;The &lt;code&gt;callToActionButtonInitializer()&lt;/code&gt; function will be called
+     * when a &lt;code&gt;Button&lt;/code&gt; with the &lt;code&gt;Button.ALTERNATE_NAME_CALL_TO_ACTION&lt;/code&gt;
+     * value is added to its &lt;code&gt;nameList&lt;/code&gt;:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * setInitializerForClass( Button, callToActionButtonInitializer, Button.ALTERNATE_NAME_CALL_TO_ACTION );&lt;/listing&gt;
+     *
+     * &lt;p&gt;Initializers are not called for subclasses. If a &lt;code&gt;Check&lt;/code&gt; is
+     * added to the display list (&lt;code&gt;Check&lt;/code&gt; extends
+     * &lt;code&gt;Button&lt;/code&gt;), the &lt;code&gt;buttonInitializer()&lt;/code&gt; function will
+     * not be called. This important restriction allows subclasses to have
+     * different skins.&lt;/p&gt;
+     *
+     * &lt;p&gt;You can target a specific subclass with the same initializer function
+     * without adding it for all subclasses:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * setInitializerForClass(Button, buttonInitializer);
+     * setInitializerForClass(Check, buttonInitializer);&lt;/listing&gt;
+     *
+     * &lt;p&gt;In this case, &lt;code&gt;Button&lt;/code&gt; and &lt;code&gt;Check&lt;/code&gt; will trigger
+     * the &lt;code&gt;buttonInitializer()&lt;/code&gt; function, but &lt;code&gt;Radio&lt;/code&gt;
+     * (another subclass of &lt;code&gt;Button&lt;/code&gt;) will not.&lt;/p&gt;
+     *
+     * &lt;p&gt;You can target a class and all of its subclasses, using a different
+     * function. This is recommended only when you are absolutely sure that
+     * no subclasses will need a separate initializer.&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * setInitializerForClassAndSubclasses(Button, buttonInitializer);&lt;/listing&gt;
+     *
+     * &lt;p&gt;In this case, &lt;code&gt;Button&lt;/code&gt;, &lt;code&gt;Check&lt;/code&gt;, &lt;code&gt;Radio&lt;/code&gt;
+     * and every other subclass of &lt;code&gt;Button&lt;/code&gt; (including any subclasses
+     * that you create yourself) will trigger the &lt;code&gt;buttonInitializer()&lt;/code&gt;
+     * function.&lt;/p&gt;
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">DisplayListWatcher</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">EventDispatcher</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         *
+         * @param topLevelContainer        The root display object to watch (not necessarily Starling's stage or root object)
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">DisplayListWatcher</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">topLevelContainer</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">topLevelContainer</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ADDED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">addedHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * The minimum base class required before the AddedWatcher will check
+         * to see if a particular display object has any initializers.
+         *
+         * &lt;p&gt;In the following example, the required base class is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * watcher.requiredBaseClass = Sprite;&lt;/listing&gt;
+         *
+         * @default feathers.core.IFeathersControl
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">requiredBaseClass</span>:<span class="ActionScriptDefault_Text">Class</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">IFeathersControl</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if only the object added should be processed or if its
+         * children should be processed recursively. Disabling this property
+         * may improve performance slightly, but it limits the capabilities of
+         * &lt;code&gt;DisplayListWatcher&lt;/code&gt;.
+         *
+         * &lt;p&gt;In the following example, children are not processed recursively:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * watcher.processRecursively = false;&lt;/listing&gt;
+         *
+         * @default true
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">processRecursively</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         * Tracks the objects that have been initialized. Uses weak keys so that
+         * the tracked objects can be garbage collected.
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">initializedObjects</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_initializeOnce</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if objects added to the display list are initialized only
+         * once or every time that they are re-added. Disabling this property
+         * will allow you to reinitialize a component when it is removed and
+         * added to the display list. However, this may also unnecessarily
+         * reinitialize components that have not changed, which will affect
+         * performance.
+         *
+         * @default true
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">initializeOnce</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializeOnce</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">initializeOnce</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializeOnce</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializeOnce</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The root of the display list that is watched for added children.
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">root</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_initializerNameTypeMap</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_initializerSuperTypes</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">&gt;</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptBracket/Brace">&lt;</span><span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">&gt;</span>[];
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_excludedObjects</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">&gt;</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Stops listening to the root and cleans up anything else that needs to
+         * be disposed. If a &lt;code&gt;DisplayListWatcher&lt;/code&gt; is extended for a
+         * theme, it should also dispose textures and other assets.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ADDED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">addedHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">root</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">=</span> 0;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">key</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">key</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">key</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">key</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">key</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">key</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">key</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">key</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">=</span> 0;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Excludes a display object, and all if its children (if any) from
+         * being watched.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">exclude</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptBracket/Brace">&lt;</span><span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">&gt;</span>[];
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if an object is excluded from being watched.
+         *
+         * &lt;p&gt;In the following example, we check if a display object is excluded:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * if( watcher.isExcluded( image ) )
+         * {
+         *     // this display object won't be processed by the watcher
+         * }&lt;/listing&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">isExcluded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">objectCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">objectCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">object</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_excludedObjects</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">object</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">object</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contains</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">true</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">object</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">true</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">false</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * Sets the initializer for a specific class.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setInitializerForClass</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">initializer</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">withName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">initializer</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nameTable</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nameTable</span> <span class="ActionScriptOperator">=</span> {};
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">initializer</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Sets an initializer for a specific class and any subclasses. This
+         * option can potentially hurt performance, so use sparingly.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setInitializerForClassAndSubclasses</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">initializer</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">indexOf</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span> <span class="ActionScriptOperator">&lt;</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">push</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">initializer</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * If an initializer exists for a specific class, it will be returned.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getInitializerForClass</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">withName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">Function</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">nameTable</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">Function</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * If an initializer exists for a specific class and its subclasses, the initializer will be returned.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getInitializerForClassAndSubclasses</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * If an initializer exists for a specific class, it will be removed
+         * completely.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">clearInitializerForClass</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">withName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">nameTable</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">delete</span> <span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">withName</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">return</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * If an initializer exists for a specific class and its subclasses, the
+         * initializer will be removed completely.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">clearInitializerForClassAndSubclasses</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">indexOf</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span> <span class="ActionScriptOperator">&gt;=</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">splice</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptOperator">,</span> 1<span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Immediately initialize an object. Useful for initializing components
+         * that are already on stage when this &lt;code&gt;DisplayListWatcher&lt;/code&gt;
+         * is created.
+         *
+         * &lt;p&gt;If the object has already been initialized, it won't be
+         * initialized again. However, it's children may be initialized, if they
+         * haven't been initialized yet.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">initializeObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">targetAsRequiredBaseClass</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">requiredBaseClass</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetAsRequiredBaseClass</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">isInitialized</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializeOnce</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">targetAsRequiredBaseClass</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">isInitialized</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isExcluded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">return</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+
+                    <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializeOnce</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializedObjects</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">targetAsRequiredBaseClass</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">processAllInitializers</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">processRecursively</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">targetAsContainer</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetAsContainer</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">childCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targetAsContainer</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span>;
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">childCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">targetAsContainer</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializeObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">processAllInitializers</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">superTypeCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">superTypeCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypes</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">applyAllStylesForTypeFromMaps</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerSuperTypeMap</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">type</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">constructor</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">applyAllStylesForTypeFromMaps</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNoNameTypeMap</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_initializerNameTypeMap</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">applyAllStylesForTypeFromMaps</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">type</span>:<span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">map</span>:<span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">nameMap</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">initializer</span>:<span class="ActionScriptDefault_Text">Function</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">hasNameInitializer</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IFeathersControl</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">nameMap</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nameTable</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nameMap</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">uiControl</span>:<span class="ActionScriptDefault_Text">IFeathersControl</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">IFeathersControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nameList</span>:<span class="ActionScriptDefault_Text">TokenList</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">uiControl</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nameList</span>;
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">nameCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nameList</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span>;
+                    <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">nameCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+                    <span class="ActionScriptBracket/Brace">{</span>
+                        <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nameList</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptDefault_Text">initializer</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">nameTable</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">Function</span>;
+                        <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">initializer</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+                        <span class="ActionScriptBracket/Brace">{</span>
+                            <span class="ActionScriptDefault_Text">hasNameInitializer</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                            <span class="ActionScriptDefault_Text">initializer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>;
+                        <span class="ActionScriptBracket/Brace">}</span>
+                    <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">hasNameInitializer</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptDefault_Text">initializer</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">map</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">Function</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">initializer</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">initializer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addedHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initializeObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

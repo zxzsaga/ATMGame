@@ -1,0 +1,297 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>IFeathersDisplayObject.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Matrix</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Rectangle</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RenderSupport</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Stage</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">filters</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FragmentFilter</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Public properties and functions from &lt;code&gt;starling.display.DisplayObject&lt;/code&gt;
+     * in helpful interface form.
+     *
+     * &lt;p&gt;Never cast an object to this type. Cast to &lt;code&gt;DisplayObject&lt;/code&gt;
+     * instead. This interface exists only to support easier code hinting.&lt;/p&gt;
+     *
+     * @see starling.display.DisplayObject
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptinterface">interface</span> <span class="ActionScriptDefault_Text">IFeathersDisplayObject</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">IFeathersEventDispatcher</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#x
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">x</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#y
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">y</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#width
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#height
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#pivotX
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">pivotX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">pivotX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#pivotY
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">pivotY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">pivotY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#scaleX
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">scaleX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">scaleX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#scaleY
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">scaleY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">scaleY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#skewX
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">skewX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">skewX</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#skewY
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">skewY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">skewY</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#blendMode
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">blendMode</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">blendMode</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#name
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#touchable
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">touchable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">touchable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#visible
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">visible</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">visible</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#alpha
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">alpha</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">alpha</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#rotation
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">rotation</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">rotation</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#parent
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">parent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#base
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">base</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#root
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">root</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#stage
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Stage</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#hasVisibleArea
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">hasVisibleArea</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#transformationMatrix
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">transformationMatrix</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Matrix</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#useHandCursor
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">useHandCursor</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">useHandCursor</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#bounds
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">bounds</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Rectangle</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#filter
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">filter</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">FragmentFilter</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">filter</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">FragmentFilter</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#removeFromParent()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#hitTest()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">hitTest</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">localPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">forTouch</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptOperator">=</span><span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#localToGlobal()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">localToGlobal</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">localPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">resultPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">=</span><span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Point</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#globalToLocal()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">globalToLocal</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">globalPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">resultPoint</span>:<span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptOperator">=</span><span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Point</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#getTransformationMatrix()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getTransformationMatrix</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetSpace</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">resultMatrix</span>:<span class="ActionScriptDefault_Text">Matrix</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Matrix</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#getBounds()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getBounds</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">targetSpace</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">resultRect</span>:<span class="ActionScriptDefault_Text">Rectangle</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Rectangle</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#render()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">render</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">support</span>:<span class="ActionScriptDefault_Text">RenderSupport</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">parentAlpha</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @see starling.display.DisplayObject#dispose()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

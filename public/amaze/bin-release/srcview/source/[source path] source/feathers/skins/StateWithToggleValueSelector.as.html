@@ -1,0 +1,141 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>StateWithToggleValueSelector.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">skins</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IToggle</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Dictionary</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Maps a component's states to values, perhaps for one of the component's
+     * properties such as a skin or text format.
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">StateWithToggleValueSelector</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">StateWithToggleValueSelector</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         * Stores the values for each state.
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">stateToValue</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         * Stores the values for each state where isSelected is true.
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">stateToSelectedValue</span>:<span class="ActionScriptDefault_Text">Dictionary</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Dictionary</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * If there is no value for the specified state, a default value can
+         * be used as a fallback.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">defaultValue</span>:<span class="ActionScriptDefault_Text">Object</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * If the target is a selected IToggle instance, and if there is no
+         * value for the specified state, a default value may be used as a
+         * fallback (with a higher priority than the regular default fallback).
+         *
+         * @see feathers.core.IToggle
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">defaultSelectedValue</span>:<span class="ActionScriptDefault_Text">Object</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Stores a value for a specified state to be returned from
+         * getValueForState().
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setValueForState</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">state</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isSelected</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isSelected</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToSelectedValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Clears the value stored for a specific state.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">clearValueForState</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">state</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isSelected</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isSelected</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToSelectedValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToSelectedValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">delete</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Returns the value stored for a specific state.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getValueForState</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">state</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">isSelected</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isSelected</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToSelectedValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Returns the value stored for a specific state. May generate a value,
+         * if none is present.
+         *
+         * @param target        The object receiving the stored value. The manager may query properties on the target to customize the returned value.
+         * @param state            The current state.
+         * @param oldValue        The previous value. May be reused for the new value.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">updateValue</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">state</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">oldValue</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IToggle</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">IToggle</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">target</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isSelected</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToSelectedValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">===</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">defaultSelectedValue</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stateToValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">state</span><span class="ActionScriptBracket/Brace">]</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">===</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">defaultValue</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">value</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

@@ -1,0 +1,121 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>ScreenNavigatorItem.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">errors</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IllegalOperationError</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Data for an individual screen that will be used by a &lt;code&gt;ScreenNavigator&lt;/code&gt;
+     * object.
+     *
+     * &lt;p&gt;The following example creates a new screen navigator item that
+     * navigates to a "main menu" screen on &lt;code&gt;Event.COMPLETE&lt;/code&gt; and
+     * sets the &lt;code&gt;settings&lt;/code&gt; property when the screen is displayed:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * var item:ScreenNavigatorItem = new ScreenNavigatorItem( SettingsScreen,
+     * {
+     *     complete: MAIN_MENU_SCREEN_ID
+     * },
+     * {
+     *     settings: settingsData
+     * });
+     * navigator.addScreen( SETTINGS_SCREEN_ID, item );&lt;/listing&gt;
+     *
+     * @see http://wiki.starling-framework.org/feathers/screen-navigator
+     * @see feathers.controls.ScreenNavigator
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">ScreenNavigatorItem</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">ScreenNavigatorItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">screen</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">events</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">properties</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">screen</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">events</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">events</span> : {};
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">properties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">properties</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptDefault_Text">properties</span> : {};
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * A Starling DisplayObject, a Class that may be instantiated to create
+         * a DisplayObject, or a Function that returns a DisplayObject.
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">screen</span>:<span class="ActionScriptDefault_Text">Object</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A hash of events to which the ScreenNavigator will listen. Keys in
+         * the hash are event types (or the property name of an &lt;code&gt;ISignal&lt;/code&gt;),
+         * and values are one of two possible types. If the value is a
+         * &lt;code&gt;String&lt;/code&gt;, it must refer to a screen ID for the
+         * &lt;code&gt;ScreenNavigator&lt;/code&gt; to display. If the value is a
+         * &lt;code&gt;Function&lt;/code&gt;, it must be a listener for the screen's event
+         * or &lt;code&gt;ISignal&lt;/code&gt;.
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">events</span>:<span class="ActionScriptDefault_Text">Object</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A hash of properties to set on the screen.
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">properties</span>:<span class="ActionScriptDefault_Text">Object</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * Creates and instance of the screen type (or uses the screen directly
+         * if it isn't a class).
+         */</span>
+        <span class="ActionScriptReserved">internal</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getScreen</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">screenInstance</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">ScreenType</span>:<span class="ActionScriptDefault_Text">Class</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Class</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">screenInstance</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ScreenType</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">screenInstance</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">screenInstance</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">screen</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">IllegalOperationError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"ScreenNavigatorItem \"screen\" must be a Class, a Function, or a Starling display object."</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">properties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">property</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">properties</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">screenInstance</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">property</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">properties</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">property</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">screenInstance</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

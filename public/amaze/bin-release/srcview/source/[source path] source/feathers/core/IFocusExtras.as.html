@@ -1,0 +1,55 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>IFocusExtras.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * A container that may have extra children that aren't accessible from the
+     * standard display list functions like &lt;code&gt;getChildAt()&lt;/code&gt;, but those
+     * "extra" children may still need to receive focus. An example of this
+     * would be a container with "chrome", such as &lt;code&gt;feathers.controls.Panel&lt;/code&gt;.
+     *
+     * @see feathers.core.IFocusManager
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptinterface">interface</span> <span class="ActionScriptDefault_Text">IFocusExtras</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Extra display objects that are not accessible through standard
+         * display list functions like &lt;code&gt;getChildAt()&lt;/code&gt;, but should
+         * appear before those children in the focus order. Typically, this is
+         * for containers that have chrome that is hidden from the normal
+         * display list API.
+         *
+         * &lt;p&gt;May return &lt;code&gt;null&lt;/code&gt; if there are no extra children.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">focusExtrasBefore</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">&gt;</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Extra display objects that are not accessible through standard
+         * display list functions like &lt;code&gt;getChildAt()&lt;/code&gt;, but should
+         * appear after those children in the focus order. Typically, this is
+         * for containers that have chrome that is hidden from the normal
+         * display list API.
+         *
+         * &lt;p&gt;May return &lt;code&gt;null&lt;/code&gt; if there are no extra children.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">focusExtrasAfter</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Vector</span><span class="ActionScriptBracket/Brace">.&lt;</span><span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">&gt;</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

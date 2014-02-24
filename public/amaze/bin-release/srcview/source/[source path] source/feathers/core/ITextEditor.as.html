@@ -1,0 +1,159 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>ITextEditor.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Point</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the text property changes.
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"change"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the user presses the Enter key while the editor has focus.
+     *
+     * @eventType feathers.events.FeathersEventType.ENTER
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"enter"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the text editor receives focus.
+     *
+     * @eventType feathers.events.FeathersEventType.FOCUS_IN
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"focusIn"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the text editor loses focus.
+     *
+     * @eventType feathers.events.FeathersEventType.FOCUS_OUT
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"focusOut"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the soft keyboard is activated. Not all text editors will
+     * activate a soft keyboard.
+     *
+     * @eventType feathers.events.FeathersEventType.SOFT_KEYBOARD_ACTIVATE
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"softKeyboardActivate"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the soft keyboard is deactivated. Not all text editors
+     * will activate a soft keyboard.
+     *
+     * @eventType feathers.events.FeathersEventType.SOFT_KEYBOARD_DEACTIVATE
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"softKeyboardDectivate"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Handles the editing of text.
+     *
+     * @see feathers.controls.TextInput
+     * @see http://wiki.starling-framework.org/feathers/text-editors
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptinterface">interface</span> <span class="ActionScriptDefault_Text">ITextEditor</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">IFeathersControl</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * The text displayed by the editor.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">text</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">text</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if the entered text will be masked so that it cannot be
+         * seen, such as for a password input.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">displayAsPassword</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">displayAsPassword</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The maximum number of characters that may be entered.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">maxChars</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">maxChars</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Limits the set of characters that may be entered.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">restrict</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">restrict</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if the text is editable.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">isEditable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">isEditable</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Boolean</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Determines if the owner should call &lt;code&gt;setFocus()&lt;/code&gt; on
+         * &lt;code&gt;TouchPhase.ENDED&lt;/code&gt; or on &lt;code&gt;TouchPhase.BEGAN&lt;/code&gt;.
+         * This is a hack because &lt;code&gt;StageText&lt;/code&gt; doesn't like being
+         * assigned focus on &lt;code&gt;TouchPhase.BEGAN&lt;/code&gt;. In general, most
+         * text editors should simply return &lt;code&gt;false&lt;/code&gt;.
+         *
+         * @see #setFocus()
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">setTouchFocusOnEndedPhase</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Gives focus to the text editor. Includes an optional position which
+         * may be used by the text editor to determine the cursor position. The
+         * position may be outside of the editors bounds.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setFocus</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">position</span>:<span class="ActionScriptDefault_Text">Point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Removes focus from the text editor.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">clearFocus</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Sets the range of selected characters. If both values are the same,
+         * the text insertion position is changed and nothing is selected.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">selectRange</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">startIndex</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">endIndex</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Measures the text's bounds (without a full validation, if
+         * possible).
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">measureText</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">result</span>:<span class="ActionScriptDefault_Text">Point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

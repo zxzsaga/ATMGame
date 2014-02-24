@@ -1,0 +1,1367 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>PickerList.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popups</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">CalloutPopUpContentManager</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popups</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IPopUpContentManager</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popups</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">VerticalCenteredPopUpContentManager</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">renderers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IListItemRenderer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FeathersControl</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">PropertyProxy</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">data</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ListCollection</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FeathersEventType</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">system</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DeviceCapabilities</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Starling</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the selected item changes.
+     *
+     * @eventType starling.events.Event.CHANGE
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"change"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * A combo-box like list control. Displayed as a button. The list appears
+     * on tap as a full-screen overlay.
+     *
+     * &lt;p&gt;The following example creates a picker list, gives it a data provider,
+     * tells the item renderer how to interpret the data, and listens for when
+     * the selection changes:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * var list:PickerList = new PickerList();
+     *
+     * list.dataProvider = new ListCollection(
+     * [
+     *     { text: "Milk", thumbnail: textureAtlas.getTexture( "milk" ) },
+     *     { text: "Eggs", thumbnail: textureAtlas.getTexture( "eggs" ) },
+     *     { text: "Bread", thumbnail: textureAtlas.getTexture( "bread" ) },
+     *     { text: "Chicken", thumbnail: textureAtlas.getTexture( "chicken" ) },
+     * ]);
+     *
+     * list.listProperties.itemRendererFactory = function():IListItemRenderer
+     * {
+     *     var renderer:DefaultListItemRenderer = new DefaultListItemRenderer();
+     *     renderer.labelField = "text";
+     *     renderer.iconSourceField = "thumbnail";
+     *     return renderer;
+     * };
+     *
+     * list.addEventListener( Event.CHANGE, list_changeHandler );
+     *
+     * this.addChild( list );&lt;/listing&gt;
+     *
+     * @see http://wiki.starling-framework.org/feathers/picker-list
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">PickerList</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">FeathersControl</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * The default value added to the &lt;code&gt;nameList&lt;/code&gt; of the button.
+         *
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_BUTTON</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"feathers-picker-list-button"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The default value added to the &lt;code&gt;nameList&lt;/code&gt; of the pop-up
+         * list.
+         *
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_LIST</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"feathers-picker-list-list"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INVALIDATION_FLAG_BUTTON_FACTORY</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"buttonFactory"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LIST_FACTORY</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"listFactory"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">defaultButtonFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Button</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Button</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">defaultListFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">List</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">List</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">PickerList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The default value added to the &lt;code&gt;nameList&lt;/code&gt; of the button. This
+         * variable is &lt;code&gt;protected&lt;/code&gt; so that sub-classes can customize
+         * the button name in their constructors instead of using the default
+         * name defined by &lt;code&gt;DEFAULT_CHILD_NAME_BUTTON&lt;/code&gt;.
+         *
+         * &lt;p&gt;To customize the button name without subclassing, see
+         * &lt;code&gt;customButtonName&lt;/code&gt;.&lt;/p&gt;
+         *
+         * @see #customButtonName
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">buttonName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_BUTTON</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The default value added to the &lt;code&gt;nameList&lt;/code&gt; of the pop-up list. This
+         * variable is &lt;code&gt;protected&lt;/code&gt; so that sub-classes can customize
+         * the list name in their constructors instead of using the default
+         * name defined by &lt;code&gt;DEFAULT_CHILD_NAME_LIST&lt;/code&gt;.
+         *
+         * &lt;p&gt;To customize the pop-up list name without subclassing, see
+         * &lt;code&gt;customListName&lt;/code&gt;.&lt;/p&gt;
+         *
+         * @see #customListName
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">listName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DEFAULT_CHILD_NAME_LIST</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The button sub-component.
+         *
+         * &lt;p&gt;For internal use in subclasses.&lt;/p&gt;
+         *
+         * @see #buttonFactory
+         * @see #createButton()
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">button</span>:<span class="ActionScriptDefault_Text">Button</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The list sub-component.
+         *
+         * &lt;p&gt;For internal use in subclasses.&lt;/p&gt;
+         *
+         * @see #listFactory
+         * @see #createList()
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">list</span>:<span class="ActionScriptDefault_Text">List</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_dataProvider</span>:<span class="ActionScriptDefault_Text">ListCollection</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * The collection of data displayed by the list.
+         *
+         * &lt;p&gt;The following example passes in a data provider and tells the item
+         * renderer how to interpret the data:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.dataProvider = new ListCollection(
+         * [
+         *     { text: "Milk", thumbnail: textureAtlas.getTexture( "milk" ) },
+         *     { text: "Eggs", thumbnail: textureAtlas.getTexture( "eggs" ) },
+         *     { text: "Bread", thumbnail: textureAtlas.getTexture( "bread" ) },
+         *     { text: "Chicken", thumbnail: textureAtlas.getTexture( "chicken" ) },
+         * ]);
+         *
+         * list.listProperties.itemRendererFactory = function():IListItemRenderer
+         * {
+         *     var renderer:DefaultListItemRenderer = new DefaultListItemRenderer();
+         *     renderer.labelField = "text";
+         *     renderer.iconSourceField = "thumbnail";
+         *     return renderer;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">dataProvider</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">ListCollection</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">dataProvider</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">ListCollection</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldSelectedIndex</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldSelectedItem</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedItem</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span> <span class="ActionScriptOperator">==</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> -1;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptComment">//this ensures that Event.CHANGE will dispatch for selectedItem
+</span>            <span class="ActionScriptComment">//changing, even if selectedIndex has not changed.
+</span>            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">oldSelectedIndex</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedItem</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptDefault_Text">oldSelectedItem</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispatchEventWith</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">CHANGE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_selectedIndex</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> -1;
+        
+        <span class="ActionScriptASDoc">/**
+         * The index of the currently selected item. Returns &lt;code&gt;-1&lt;/code&gt; if
+         * no item is selected.
+         *
+         * &lt;p&gt;The following example selects an item by its index:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.selectedIndex = 2;&lt;/listing&gt;
+         *
+         * &lt;p&gt;The following example clears the selected index:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.selectedIndex = -1;&lt;/listing&gt;
+         *
+         * &lt;p&gt;The following example listens for when selection changes and
+         * requests the selected index:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * function list_changeHandler( event:Event ):void
+         * {
+         *     var list:PickerList = PickerList( event.currentTarget );
+         *     var index:int = list.selectedIndex;
+         *
+         * }
+         * list.addEventListener( Event.CHANGE, list_changeHandler );&lt;/listing&gt;
+         *
+         * @default -1
+         *
+         * @see #selectedItem
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">selectedIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">selectedIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SELECTED</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispatchEventWith</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">CHANGE</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * The currently selected item. Returns &lt;code&gt;null&lt;/code&gt; if no item is
+         * selected.
+         *
+         * &lt;p&gt;The following example changes the selected item:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.selectedItem = list.dataProvider.getItemAt(0);&lt;/listing&gt;
+         *
+         * &lt;p&gt;The following example clears the selected item:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.selectedItem = null;&lt;/listing&gt;
+         *
+         * &lt;p&gt;The following example listens for when selection changes and
+         * requests the selected item:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * function list_changeHandler( event:Event ):void
+         * {
+         *     var list:PickerList = PickerList( event.currentTarget );
+         *     var item:Object = list.selectedItem;
+         *
+         * }
+         * list.addEventListener( Event.CHANGE, list_changeHandler );&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #selectedIndex
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">selectedItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptOperator">||</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span> <span class="ActionScriptOperator">&gt;=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getItemAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">selectedItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> -1;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getItemIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_prompt</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Text displayed by the button sub-component when no items are
+         * currently selected.
+         *
+         * &lt;p&gt;In the following example, a prompt is given to the picker list
+         * and the selected item is cleared to display the prompt:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.prompt = "Select an Item";
+         * list.selectedIndex = -1;&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">prompt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_prompt</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">prompt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_prompt</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_prompt</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SELECTED</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_labelField</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"label"</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * The field in the selected item that contains the label text to be
+         * displayed by the picker list's button control. If the selected item
+         * does not have this field, and a &lt;code&gt;labelFunction&lt;/code&gt; is not
+         * defined, then the picker list will default to calling
+         * &lt;code&gt;toString()&lt;/code&gt; on the selected item. To omit the
+         * label completely, define a &lt;code&gt;labelFunction&lt;/code&gt; that returns an
+         * empty string.
+         *
+         * &lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; This value only affects the selected
+         * item displayed by the picker list's button control. It will &lt;em&gt;not&lt;/em&gt;
+         * affect the label text of the pop-up list's item renderers.&lt;/p&gt;
+         *
+         * &lt;p&gt;In the following example, the label field is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.labelField = "text";&lt;/listing&gt;
+         *
+         * @default "label"
+         *
+         * @see #labelFunction
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">labelField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">labelField</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_labelFunction</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function used to generate label text for the selected item
+         * displayed by the picker list's button control. If this
+         * function is not null, then the &lt;code&gt;labelField&lt;/code&gt; will be
+         * ignored.
+         *
+         * &lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; This value only affects the selected
+         * item displayed by the picker list's button control. It will &lt;em&gt;not&lt;/em&gt;
+         * affect the label text of the pop-up list's item renderers.&lt;/p&gt;
+         *
+         * &lt;p&gt;The function is expected to have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function( item:Object ):String&lt;/pre&gt;
+         *
+         * &lt;p&gt;All of the label fields and functions, ordered by priority:&lt;/p&gt;
+         * &lt;ol&gt;
+         *     &lt;li&gt;&lt;code&gt;labelFunction&lt;/code&gt;&lt;/li&gt;
+         *     &lt;li&gt;&lt;code&gt;labelField&lt;/code&gt;&lt;/li&gt;
+         * &lt;/ol&gt;
+         *
+         * &lt;p&gt;In the following example, the label field is changed:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.labelFunction = function( item:Object ):String
+         * {
+         *     return item.firstName + " " + item.lastName;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #labelField
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">labelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelFunction</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">labelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelFunction</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_popUpContentManager</span>:<span class="ActionScriptDefault_Text">IPopUpContentManager</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A manager that handles the details of how to display the pop-up list.
+         *
+         * &lt;p&gt;In the following example, a pop-up content manager is provided:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.popUpContentManager = new CalloutPopUpContentManager();&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">popUpContentManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">IPopUpContentManager</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">popUpContentManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">IPopUpContentManager</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_typicalItemWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_typicalItemHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_typicalItem</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * Used to auto-size the list. If the list's width or height is NaN, the
+         * list will try to automatically pick an ideal size. This item is
+         * used in that process to create a sample item renderer.
+         *
+         * &lt;p&gt;The following example provides a typical item:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.typicalItem = { text: "A typical item", thumbnail: texture };
+         * list.itemRendererProperties.labelField = "text";
+         * list.itemRendererProperties.iconSourceField = "thumbnail";&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">typicalItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItem</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">typicalItem</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItem</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItem</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_buttonFactory</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function used to generate the picker list's button sub-component.
+         * The button must be an instance of &lt;code&gt;Button&lt;/code&gt;. This factory
+         * can be used to change properties on the button when it is first
+         * created. For instance, if you are skinning Feathers components
+         * without a theme, you might use this factory to set skins and other
+         * styles on the button.
+         *
+         * &lt;p&gt;The function should have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function():Button&lt;/pre&gt;
+         *
+         * &lt;p&gt;In the following example, a custom button factory is passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.buttonFactory = function():Button
+         * {
+         *     var button:Button = new Button();
+         *     button.defaultSkin = new Image( upTexture );
+         *     button.downSkin = new Image( downTexture );
+         *     return button;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see feathers.controls.Button
+         * @see #buttonProperties
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">buttonFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonFactory</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">buttonFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonFactory</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonFactory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_BUTTON_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_customButtonName</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A name to add to the picker list's button sub-component. Typically
+         * used by a theme to provide different skins to different picker lists.
+         *
+         * &lt;p&gt;In the following example, a custom button name is passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.customButtonName = "my-custom-button";&lt;/listing&gt;
+         *
+         * &lt;p&gt;In your theme, you can target this sub-component name to provide
+         * different skins than the default style:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * setInitializerForClass( Button, customButtonInitializer, "my-custom-button");&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #DEFAULT_CHILD_NAME_BUTTON
+         * @see feathers.core.FeathersControl#nameList
+         * @see feathers.core.DisplayListWatcher
+         * @see #buttonFactory
+         * @see #buttonProperties
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">customButtonName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customButtonName</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">customButtonName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customButtonName</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customButtonName</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_BUTTON_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_buttonProperties</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A set of key/value pairs to be passed down to the picker's button
+         * sub-component. It is a &lt;code&gt;feathers.controls.Button&lt;/code&gt;
+         * instance that is created by &lt;code&gt;buttonFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;If the subcomponent has its own subcomponents, their properties
+         * can be set too, using attribute &lt;code&gt;&amp;#64;&lt;/code&gt; notation. For example,
+         * to set the skin on the thumb which is in a &lt;code&gt;SimpleScrollBar&lt;/code&gt;,
+         * which is in a &lt;code&gt;List&lt;/code&gt;, you can use the following syntax:&lt;/p&gt;
+         * &lt;pre&gt;list.verticalScrollBarProperties.&amp;#64;thumbProperties.defaultSkin = new Image(texture);&lt;/pre&gt;
+         *
+         * &lt;p&gt;Setting properties in a &lt;code&gt;buttonFactory&lt;/code&gt; function
+         * instead of using &lt;code&gt;buttonProperties&lt;/code&gt; will result in better
+         * performance.&lt;/p&gt;
+         *
+         * &lt;p&gt;In the following example, the button properties are passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.buttonProperties.defaultSkin = new Image( upTexture );
+         * list.buttonProperties.downSkin = new Image( downTexture );&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #buttonFactory
+         * @see feathers.controls.Button
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">buttonProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">buttonProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">newValue</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">newValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newValue</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_listFactory</span>:<span class="ActionScriptDefault_Text">Function</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A function used to generate the picker list's pop-up list
+         * sub-component. The list must be an instance of &lt;code&gt;List&lt;/code&gt;.
+         * This factory can be used to change properties on the list when it is
+         * first created. For instance, if you are skinning Feathers components
+         * without a theme, you might use this factory to set skins and other
+         * styles on the list.
+         *
+         * &lt;p&gt;The function should have the following signature:&lt;/p&gt;
+         * &lt;pre&gt;function():List&lt;/pre&gt;
+         *
+         * &lt;p&gt;In the following example, a custom list factory is passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.listFactory = function():List
+         * {
+         *     var popUpList:List = new List();
+         *     popUpList.backgroundSkin = new Image( texture );
+         *     return popUpList;
+         * };&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see feathers.controls.List
+         * @see #listProperties
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">listFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Function</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listFactory</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">listFactory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listFactory</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listFactory</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LIST_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_customListName</span>:<span class="ActionScriptDefault_Text">String</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * A name to add to the picker list's list sub-component. Typically used
+         * by a theme to provide different skins to different picker lists.
+         *
+         * &lt;p&gt;In the following example, a custom list name is passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.customListName = "my-custom-list";&lt;/listing&gt;
+         *
+         * &lt;p&gt;In your theme, you can target this sub-component name to provide
+         * different skins than the default style:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * setInitializerForClass( List, customListInitializer, "my-custom-list");&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #DEFAULT_CHILD_NAME_LIST
+         * @see feathers.core.FeathersControl#nameList
+         * @see feathers.core.DisplayListWatcher
+         * @see #listFactory
+         * @see #listProperties
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">customListName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customListName</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">customListName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customListName</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customListName</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LIST_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_listProperties</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * A set of key/value pairs to be passed down to the picker's pop-up
+         * list sub-component. The pop-up list is a
+         * &lt;code&gt;feathers.controls.List&lt;/code&gt; instance that is created by
+         * &lt;code&gt;listFactory&lt;/code&gt;.
+         *
+         * &lt;p&gt;If the subcomponent has its own subcomponents, their properties
+         * can be set too, using attribute &lt;code&gt;&amp;#64;&lt;/code&gt; notation. For example,
+         * to set the skin on the thumb which is in a &lt;code&gt;SimpleScrollBar&lt;/code&gt;,
+         * which is in a &lt;code&gt;List&lt;/code&gt;, you can use the following syntax:&lt;/p&gt;
+         * &lt;pre&gt;list.verticalScrollBarProperties.&amp;#64;thumbProperties.defaultSkin = new Image(texture);&lt;/pre&gt;
+         *
+         * &lt;p&gt;Setting properties in a &lt;code&gt;listFactory&lt;/code&gt; function
+         * instead of using &lt;code&gt;listProperties&lt;/code&gt; will result in better
+         * performance.&lt;/p&gt;
+         *
+         * &lt;p&gt;In the following example, the list properties are passed to the
+         * picker list:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * list.listProperties.backgroundSkin = new Image( texture );&lt;/listing&gt;
+         *
+         * @default null
+         *
+         * @see #listFactory
+         * @see feathers.controls.List
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">listProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Object</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">listProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">newValue</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">newValue</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">value</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">newValue</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addOnChangeCallback</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_isOpenListPending</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_isCloseListPending</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+        
+        <span class="ActionScriptASDoc">/**
+         * Using &lt;code&gt;labelField&lt;/code&gt; and &lt;code&gt;labelFunction&lt;/code&gt;,
+         * generates a label from the selected item to be displayed by the
+         * picker list's button control.
+         *
+         * &lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; This value only affects the selected
+         * item displayed by the picker list's button control. It will &lt;em&gt;not&lt;/em&gt;
+         * affect the label text of the pop-up list's item renderers.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">itemToLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span>:<span class="ActionScriptDefault_Text">Object</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">String</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelFunction</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">labelResult</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelFunction</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">labelResult</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_labelField</span><span class="ActionScriptBracket/Brace">]</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">labelResult</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">labelResult</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">item</span> <span class="ActionScriptReserved">as</span> <span class="ActionScriptDefault_Text">String</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span> <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">item</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">item</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">toString</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptString">""</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Opens the pop-up list, if it isn't already open.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">openList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isCloseListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isValidating</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isOpenListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isOpenListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">open</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">scrollToDisplayIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Closes the pop-up list, if it is open.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">closeList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isOpenListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isValidating</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isCloseListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isCloseListPending</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">close</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">closeList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">initialize</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">DeviceCapabilities</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isTablet</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nativeStage</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popUpContentManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">CalloutPopUpContentManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popUpContentManager</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">VerticalCenteredPopUpContentManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">dataInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_DATA</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stylesInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stateInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STATE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">selectionInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SELECTED</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">sizeInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SIZE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">buttonFactoryInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_BUTTON_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">listFactoryInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LIST_FACTORY</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">createButton</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">listFactoryInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">createList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">selectionInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptComment">//this section asks the button to auto-size again, if our
+</span>                <span class="ActionScriptComment">//explicit dimensions aren't set.
+</span>                <span class="ActionScriptComment">//set this before buttonProperties is used because it might
+</span>                <span class="ActionScriptComment">//contain width or height changes.
+</span>                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshButtonProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">listFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stylesInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshListProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">listFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">dataInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldIgnoreSelectionChanges</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dataProvider</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_dataProvider</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldIgnoreSelectionChanges</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">listFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">stateInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isEnabled</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isEnabled</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">dataInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">selectionInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshButtonLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">listFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">dataInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">selectionInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">oldIgnoreSelectionChanges</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldIgnoreSelectionChanges</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptDefault_Text">sizeInvalid</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">autoSizeIfNeeded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">sizeInvalid</span>;
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonFactoryInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">sizeInvalid</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">selectionInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">handlePendingActions</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * If the component's dimensions have not been set explicitly, it will
+         * measure its content and determine an ideal size for itself. If the
+         * &lt;code&gt;explicitWidth&lt;/code&gt; or &lt;code&gt;explicitHeight&lt;/code&gt; member
+         * variables are set, those value will be used without additional
+         * measurement. If one is set, but not the other, the dimension with the
+         * explicit value will not be measured, but the other non-explicit
+         * dimension will still need measurement.
+         *
+         * &lt;p&gt;Calls &lt;code&gt;setSizeInternal()&lt;/code&gt; to set up the
+         * &lt;code&gt;actualWidth&lt;/code&gt; and &lt;code&gt;actualHeight&lt;/code&gt; member
+         * variables used for layout.&lt;/p&gt;
+         *
+         * &lt;p&gt;Meant for internal use, and subclasses may override this function
+         * with a custom implementation.&lt;/p&gt;
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">autoSizeIfNeeded</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">needsWidth</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">needsHeight</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">needsWidth</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">needsHeight</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">NaN</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItem</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemWidth</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">isNaN</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemHeight</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">label</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">itemToLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItem</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshButtonLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitWidth</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">newHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">explicitHeight</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">needsWidth</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemWidth</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">needsHeight</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">newHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_typicalItemHeight</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setSizeInternal</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">newWidth</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">newHeight</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Creates and adds the &lt;code&gt;button&lt;/code&gt; sub-component and
+         * removes the old instance, if one exists.
+         *
+         * &lt;p&gt;Meant for internal use, and subclasses may override this function
+         * with a custom implementation.&lt;/p&gt;
+         *
+         * @see #button
+         * @see #buttonFactory
+         * @see #customButtonName
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">createButton</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">factory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonFactory</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonFactory</span> : <span class="ActionScriptDefault_Text">defaultButtonFactory</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">buttonName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customButtonName</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customButtonName</span> : <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">buttonName</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Button</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">factory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nameList</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">add</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">buttonName</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TRIGGERED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">button_triggeredHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Creates and adds the &lt;code&gt;list&lt;/code&gt; sub-component and
+         * removes the old instance, if one exists.
+         *
+         * &lt;p&gt;Meant for internal use, and subclasses may override this function
+         * with a custom implementation.&lt;/p&gt;
+         *
+         * @see #list
+         * @see #listFactory
+         * @see #customListName
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">createList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeFromParent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptComment">//disposing separately because the list may not have a parent
+</span>                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">factory</span>:<span class="ActionScriptDefault_Text">Function</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listFactory</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listFactory</span> : <span class="ActionScriptDefault_Text">defaultListFactory</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">listName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customListName</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptReserved">null</span> <span class="ActionScriptOperator">?</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_customListName</span> : <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">listName</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">List</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">factory</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nameList</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">add</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">listName</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">CHANGE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">list_changeHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">FeathersEventType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RENDERER_ADD</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">list_rendererAddHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">FeathersEventType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RENDERER_REMOVE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">list_rendererRemoveHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshButtonLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_selectedIndex</span> <span class="ActionScriptOperator">&gt;=</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">label</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">itemToLabel</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedItem</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">label</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_prompt</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshButtonProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyValue</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_buttonProperties</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">propertyValue</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshListProperties</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyName</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptReserved">in</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hasOwnProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">propertyValue</span>:<span class="ActionScriptDefault_Text">Object</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_listProperties</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">propertyName</span><span class="ActionScriptBracket/Brace">]</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">propertyValue</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualWidth</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">actualHeight</span>;
+
+            <span class="ActionScriptComment">//final validation to avoid juggler next frame issues
+</span>            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">button</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">handlePendingActions</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isOpenListPending</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">openList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isCloseListPending</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">closeList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">childProperties_onChange</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">proxy</span>:<span class="ActionScriptDefault_Text">PropertyProxy</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">button_triggeredHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_popUpContentManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">closeList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">openList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+        
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">list_changeHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_ignoreSelectionChanges</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">list</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">selectedIndex</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">list_rendererAddHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">renderer</span>:<span class="ActionScriptDefault_Text">IListItemRenderer</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">renderer</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TRIGGERED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">renderer_triggeredHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">list_rendererRemoveHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">renderer</span>:<span class="ActionScriptDefault_Text">IListItemRenderer</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptDefault_Text">renderer</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TRIGGERED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">renderer_triggeredHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">renderer_triggeredHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_isEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">closeList</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span></pre></body>
+</html>

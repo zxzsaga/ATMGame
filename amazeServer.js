@@ -149,7 +149,7 @@ function broadcastTimeout() {
             var player2Pos = { x: user[j].player.x, y: user[j].player.y };
             if (!user[i].player.ghost && user[j].player.zombie) {
                 if (checkDistance(player1Pos, player2Pos, 15)) {
-                    if (user[i].alive && user[j].alive) {
+                    if (user[i].player.alive && user[j].player.alive) {
                         user[i].player.type = 'dead';
                         for (var k in user) {
                             user[k].connection.write(JSON.stringify(user[i].player));

@@ -1,0 +1,375 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>VerticalCenteredPopUpContentManager.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">popups</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IFeathersControl</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IValidating</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">PopUpManager</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">FeathersEventType</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">utils</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getDisplayObjectDepthFromStage</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">errors</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IllegalOperationError</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">KeyboardEvent</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">geom</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Point</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">flash</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ui</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Keyboard</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Starling</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Stage</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">EventDispatcher</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ResizeEvent</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Touch</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TouchEvent</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TouchPhase</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * @inheritDoc
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"close"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptASDoc">/**
+     * Displays a pop-up at the center of the stage, filling the vertical space.
+     * The content will be sized horizontally so that it is no larger than the
+     * the width or height of the stage (whichever is smaller).
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">VerticalCenteredPopUpContentManager</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">EventDispatcher</span> <span class="ActionScriptReserved">implements</span> <span class="ActionScriptDefault_Text">IPopUpContentManager</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">private</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span>:<span class="ActionScriptDefault_Text">Point</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">Point</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">VerticalCenteredPopUpContentManager</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Quickly sets all margin properties to the same value. The
+         * &lt;code&gt;margin&lt;/code&gt; getter always returns the value of
+         * &lt;code&gt;marginTop&lt;/code&gt;, but the other padding values may be
+         * different.
+         *
+         * &lt;p&gt;The following example gives the pop-up a minimum of 20 pixels of
+         * margin on all sides:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * manager.margin = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         *
+         * @see #marginTop
+         * @see #marginRight
+         * @see #marginBottom
+         * @see #marginLeft
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">margin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Number</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginTop</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">margin</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Number</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginTop</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginRight</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginBottom</span> <span class="ActionScriptOperator">=</span> 0;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginLeft</span> <span class="ActionScriptOperator">=</span> 0;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the top edge of the content and
+         * the top edge of the stage.
+         *
+         * &lt;p&gt;The following example gives the pop-up a minimum of 20 pixels of
+         * margin on the top:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * manager.marginTop = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         *
+         * @see #margin
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">marginTop</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the right edge of the content
+         * and the right edge of the stage.
+         *
+         * &lt;p&gt;The following example gives the pop-up a minimum of 20 pixels of
+         * margin on the right:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * manager.marginRight = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         *
+         * @see #margin
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">marginRight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the bottom edge of the content
+         * and the bottom edge of the stage.
+         *
+         * &lt;p&gt;The following example gives the pop-up a minimum of 20 pixels of
+         * margin on the bottom:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * manager.marginBottom = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         *
+         * @see #margin
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">marginBottom</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * The minimum space, in pixels, between the left edge of the content
+         * and the left edge of the stage.
+         *
+         * &lt;p&gt;The following example gives the pop-up a minimum of 20 pixels of
+         * margin on the left:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * manager.marginLeft = 20;&lt;/listing&gt;
+         *
+         * @default 0
+         *
+         * @see #margin
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">marginLeft</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> 0;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">content</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">touchPointID</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> -1;
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Boolean</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">!==</span> <span class="ActionScriptReserved">null</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">open</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">content</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">source</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">IllegalOperationError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"Pop-up content is already open. Close the previous content before opening new content."</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">content</span>;
+            <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IFeathersControl</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">FeathersEventType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RESIZE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">content_resizeHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">TouchEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TOUCH</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">stage_touchHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">ResizeEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RESIZE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">stage_resizeHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptComment">//using priority here is a hack so that objects higher up in the
+</span>            <span class="ActionScriptComment">//display list have a chance to cancel the event first.
+</span>            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">priority</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptOperator">-</span><span class="ActionScriptDefault_Text">getDisplayObjectDepthFromStage</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nativeStage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">KeyboardEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">KEY_DOWN</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">nativeStage_keyDownHandler</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">priority</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">close</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isOpen</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">TouchEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">TOUCH</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">stage_touchHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">ResizeEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RESIZE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">stage_resizeHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">nativeStage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">KeyboardEvent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">KEY_DOWN</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">nativeStage_keyDownHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IFeathersControl</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeEventListener</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">FeathersEventType</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RESIZE</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">content_resizeHandler</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removePopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">null</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">dispatchEventWith</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">CLOSE</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">close</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxWidth</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Math</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">min</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stageWidth</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stageHeight</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginLeft</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginRight</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">maxHeight</span>:<span class="ActionScriptDefault_Text">Number</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stageHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginTop</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">marginBottom</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IValidating</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IFeathersControl</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">uiContent</span>:<span class="ActionScriptDefault_Text">IFeathersControl</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">IFeathersControl</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptDefault_Text">uiContent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">minWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">uiContent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">maxWidth</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxWidth</span>;
+                    <span class="ActionScriptDefault_Text">uiContent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">maxHeight</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxHeight</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">IValidating</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">validate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptComment">//if it's a ui control that is able to auto-size, the above
+</span>                <span class="ActionScriptComment">//section will ensure that the control stays within the required
+</span>                <span class="ActionScriptComment">//bounds.
+</span>                <span class="ActionScriptComment">//if it's not a ui control, or if the control's explicit width
+</span>                <span class="ActionScriptComment">//and height values are greater than our maximum bounds, then we
+</span>                <span class="ActionScriptComment">//will enforce the maximum bounds the hard way.
+</span>                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">maxWidth</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxWidth</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">&gt;</span> <span class="ActionScriptDefault_Text">maxHeight</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">maxHeight</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">x</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stageWidth</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">width</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">y</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stageHeight</span> <span class="ActionScriptOperator">-</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">height</span><span class="ActionScriptBracket/Brace">)</span> <span class="ActionScriptOperator">/</span> 2;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">content_resizeHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">Event</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">nativeStage_keyDownHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">KeyboardEvent</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isDefaultPrevented</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptComment">//someone else already handled this one
+</span>                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">keyCode</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptDefault_Text">Keyboard</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">BACK</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">keyCode</span> <span class="ActionScriptOperator">!=</span> <span class="ActionScriptDefault_Text">Keyboard</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ESCAPE</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptComment">//don't let the OS handle the event
+</span>            <span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">preventDefault</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">close</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">stage_resizeHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">ResizeEvent</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">stage_touchHandler</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">event</span>:<span class="ActionScriptDefault_Text">TouchEvent</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">PopUpManager</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isTopLevelPopUp</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stage</span>:<span class="ActionScriptDefault_Text">Stage</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">Starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">current</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">stage</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchPointID</span> <span class="ActionScriptOperator">&gt;=</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">touch</span>:<span class="ActionScriptDefault_Text">Touch</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getTouch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">TouchPhase</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ENDED</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchPointID</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">touch</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">touch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getLocation</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">hitTestResult</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hitTest</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">isInBounds</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">isInBounds</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contains</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">hitTestResult</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">isInBounds</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">hitTestResult</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">isInBounds</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchPointID</span> <span class="ActionScriptOperator">=</span> -1;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">close</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">touch</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">event</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getTouch</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">TouchPhase</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">BEGAN</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptDefault_Text">touch</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptDefault_Text">touch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getLocation</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">hitTestResult</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">stage</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">hitTest</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">HELPER_POINT</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptDefault_Text">isInBounds</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">isInBounds</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">contains</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">hitTestResult</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">else</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">isInBounds</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">content</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">hitTestResult</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">isInBounds</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptReserved">return</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">touchPointID</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">touch</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">id</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+        <span class="ActionScriptBracket/Brace">}</span>
+
+
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

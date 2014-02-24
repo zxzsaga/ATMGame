@@ -189,7 +189,9 @@
 			</node>
 		</node>
 		<node label="bgm">
+			<node label="lighting.mp3" url="source/bgm/lighting.mp3"/>
 			<node label="maze.mp3" url="source/bgm/maze.mp3"/>
+			<node label="screaming_boy.mp3" url="source/bgm/screaming_boy.mp3"/>
 		</node>
 		<node label="html-template">
 			<node label="history">
@@ -203,24 +205,34 @@
 		</node>
 		<node label="img">
 			<node icon="imageIcon" label="ableGround.png" url="source/img/ableGround.png.html"/>
+			<node icon="imageIcon" label="actTrapGround.png" url="source/img/actTrapGround.png.html"/>
+			<node icon="imageIcon" label="bloodyGround.png" url="source/img/bloodyGround.png.html"/>
 			<node icon="imageIcon" label="ending.png" url="source/img/ending.png.html"/>
 			<node icon="imageIcon" label="inputNameBG.png" url="source/img/inputNameBG.png.html"/>
 			<node icon="imageIcon" label="player.png" url="source/img/player.png.html"/>
+			<node icon="imageIcon" label="trapGround.png" url="source/img/trapGround.png.html"/>
 			<node icon="imageIcon" label="unableGround.png" url="source/img/unableGround.png.html"/>
 		</node>
 		<node label="src">
 			<node icon="actionScriptIcon" label="Assets.as" url="source/Assets.as.html"/>
+			<node icon="actionScriptIcon" label="DeadSpace.as" url="source/DeadSpace.as.html"/>
+			<node icon="actionScriptIcon" label="DFSMazeCreater.as" url="source/DFSMazeCreater.as.html"/>
 			<node icon="actionScriptIcon" label="Director.as" url="source/Director.as.html"/>
 			<node icon="mxmlAppIcon" selected="true" label="Game.as" url="source/Game.as.html"/>
 			<node icon="actionScriptIcon" label="GameStage.as" url="source/GameStage.as.html"/>
+			<node icon="actionScriptIcon" label="MazeCreater.as" url="source/MazeCreater.as.html"/>
 			<node icon="actionScriptIcon" label="MySocket.as" url="source/MySocket.as.html"/>
 			<node icon="actionScriptIcon" label="PlayerImage.as" url="source/PlayerImage.as.html"/>
 			<node icon="actionScriptIcon" label="PlayerInfo.as" url="source/PlayerInfo.as.html"/>
+			<node icon="actionScriptIcon" label="RDMazeCreater.as" url="source/RDMazeCreater.as.html"/>
 			<node icon="actionScriptIcon" label="RPMazeCreater.as" url="source/RPMazeCreater.as.html"/>
 			<node icon="actionScriptIcon" label="SpotlightFilter.as" url="source/SpotlightFilter.as.html"/>
+			<node icon="actionScriptIcon" label="TextSpace.as" url="source/TextSpace.as.html"/>
+			<node icon="actionScriptIcon" label="TrapSpace.as" url="source/TrapSpace.as.html"/>
 		</node>
+		<node label="simpleMaze2.zip" url="source/simpleMaze2.zip"/>
 	</nodes>
-	<zipfile label="下载源代码（ZIP，3051 KB）" url="simpleMaze2.zip">
+	<zipfile label="下载源代码（ZIP，8468 KB）" url="simpleMaze2.zip">
 	</zipfile>
 	<sdklink label="下载 Flex SDK" url="http://www.adobe.com/go/flex451_sdk_download_zh_CN">
 	</sdklink>

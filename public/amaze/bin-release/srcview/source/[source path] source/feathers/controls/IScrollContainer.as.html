@@ -1,0 +1,104 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>IScrollContainer.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IFeathersControl</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Defines functions for a &lt;code&gt;Scroller&lt;/code&gt; subclass that delegates
+     * display list manipulations to its &lt;code&gt;IViewPort&lt;/code&gt;.
+     *
+     * &lt;p&gt;Mainly intended for &lt;code&gt;ScrollContainer&lt;/code&gt;, but other subclasses
+     * of &lt;code&gt;Scroller&lt;/code&gt; could possibly implement it too.&lt;/p&gt;
+     *
+     * @see feathers.controls.Scroller
+     * @see feathers.controls.ScrollContainer
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptinterface">interface</span> <span class="ActionScriptDefault_Text">IScrollContainer</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">IFeathersControl</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * Returns the number of raw children that are added directly to the
+         * &lt;code&gt;Scroller&lt;/code&gt; rather than delegating the call to the view
+         * port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">numRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Gets the name of a direct child of the &lt;code&gt;Scroller&lt;/code&gt; rather
+         * than delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getRawChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Gets the index of a direct child of the &lt;code&gt;Scroller&lt;/code&gt; rather
+         * than delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Sets the index of a direct child of the &lt;code&gt;Scroller&lt;/code&gt; rather
+         * than delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Adds a child to the &lt;code&gt;Scroller&lt;/code&gt; rather than delegating the
+         * call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addRawChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Adds a child to the &lt;code&gt;Scroller&lt;/code&gt; at a specific index rather
+         * than delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addRawChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Removes a child from the &lt;code&gt;Scroller&lt;/code&gt; rather than delegating
+         * the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeRawChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Removes a child from the &lt;code&gt;Scroller&lt;/code&gt; at a specific index
+         * rather than delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeRawChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Swaps the children of the &lt;code&gt;Scroller&lt;/code&gt; rather than
+         * delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">swapRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child1</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">child2</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Swaps the children of the &lt;code&gt;Scroller&lt;/code&gt; rather than
+         * delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">swapRawChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Sorts the children of the &lt;code&gt;Scroller&lt;/code&gt; rather than
+         * delegating the call to the view port.
+         */</span>
+        <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">sortRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>;
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>

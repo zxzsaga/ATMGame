@@ -1,0 +1,612 @@
+<!-- saved from url=(0014)about:internet -->
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<title>ScrollContainer.as</title>
+<link rel="stylesheet" type="text/css" href="../../../../SourceStyles.css"/>
+</head>
+
+<body><pre><span class="ActionScriptComment">/*
+Feathers
+Copyright 2012-2013 Joshua Tynjala. All Rights Reserved.
+
+This program is free software. You can redistribute and/or modify it in
+accordance with the terms of the accompanying license agreement.
+*/</span>
+<span class="ActionScriptpackage">package</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span>
+<span class="ActionScriptBracket/Brace">{</span>
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">controls</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">supportClasses</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">LayoutViewPort</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">ILayout</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">feathers</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">IVirtualLayout</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">core</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">RenderSupport</span>;
+
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObject</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">display</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">DisplayObjectContainer</span>;
+    <span class="ActionScriptReserved">import</span> <span class="ActionScriptDefault_Text">starling</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">events</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">Event</span>;
+
+    <span class="ActionScriptASDoc">/**
+     * Dispatched when the container is scrolled.
+     *
+     * @eventType starling.events.Event.SCROLL
+     */</span>
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">Event</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"change"</span><span class="ActionScriptOperator">,</span><span class="ActionScriptDefault_Text">type</span><span class="ActionScriptOperator">=</span><span class="ActionScriptString">"starling.events.Event"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+
+    <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">DefaultProperty</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"mxmlContent"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+    <span class="ActionScriptASDoc">/**
+     * A generic container that supports layout, scrolling, and a background
+     * skin. For a lighter container, see &lt;code&gt;LayoutGroup&lt;/code&gt;, which
+     * focuses specifically on layout without scrolling.
+     *
+     * &lt;p&gt;The following example creates a scroll container with a horizontal
+     * layout and adds two buttons to it:&lt;/p&gt;
+     *
+     * &lt;listing version="3.0"&gt;
+     * var container:ScrollContainer = new ScrollContainer();
+     * var layout:HorizontalLayout = new HorizontalLayout();
+     * layout.gap = 20;
+     * layout.padding = 20;
+     * container.layout = layout;
+     * this.addChild( container );
+     *
+     * var yesButton:Button = new Button();
+     * yesButton.label = "Yes";
+     * container.addChild( yesButton );
+     *
+     * var noButton:Button = new Button();
+     * noButton.label = "No";
+     * container.addChild( noButton );&lt;/listing&gt;
+     *
+     * @see http://wiki.starling-framework.org/feathers/scroll-container
+     * @see feathers.controls.LayoutGroup
+     */</span>
+    <span class="ActionScriptReserved">public</span> <span class="ActionScriptclass">class</span> <span class="ActionScriptDefault_Text">ScrollContainer</span> <span class="ActionScriptReserved">extends</span> <span class="ActionScriptDefault_Text">Scroller</span> <span class="ActionScriptReserved">implements</span> <span class="ActionScriptDefault_Text">IScrollContainer</span>
+    <span class="ActionScriptBracket/Brace">{</span>
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INVALIDATION_FLAG_MXML_CONTENT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"mxmlContent"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * An alternate name to use with &lt;code&gt;ScrollContainer&lt;/code&gt; to allow a
+         * theme to give it a toolbar style. If a theme does not provide a skin
+         * for the toolbar style, the theme will automatically fall back to
+         * using the default scroll container skin.
+         *
+         * &lt;p&gt;An alternate name should always be added to a component's
+         * &lt;code&gt;nameList&lt;/code&gt; before the component is added to the stage for
+         * the first time. If it is added later, it will be ignored.&lt;/p&gt;
+         *
+         * &lt;p&gt;In the following example, the toolbar style is applied to a scroll
+         * container:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * var container:ScrollContainer = new ScrollContainer();
+         * container.nameList.add( ScrollContainer.ALTERNATE_NAME_TOOLBAR );
+         * this.addChild( container );&lt;/listing&gt;
+         *
+         * @see feathers.core.IFeathersControl#nameList
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">ALTERNATE_NAME_TOOLBAR</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"feathers-toolbar-scroll-container"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_POLICY_AUTO
+         *
+         * @see feathers.controls.Scroller#horizontalScrollPolicy
+         * @see feathers.controls.Scroller#verticalScrollPolicy
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_POLICY_AUTO</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"auto"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_POLICY_ON
+         *
+         * @see feathers.controls.Scroller#horizontalScrollPolicy
+         * @see feathers.controls.Scroller#verticalScrollPolicy
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_POLICY_ON</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"on"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_POLICY_OFF
+         *
+         * @see feathers.controls.Scroller#horizontalScrollPolicy
+         * @see feathers.controls.Scroller#verticalScrollPolicy
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_POLICY_OFF</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"off"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_FLOAT
+         *
+         * @see feathers.controls.Scroller#scrollBarDisplayMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_BAR_DISPLAY_MODE_FLOAT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"float"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_FIXED
+         *
+         * @see feathers.controls.Scroller#scrollBarDisplayMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_BAR_DISPLAY_MODE_FIXED</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"fixed"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#SCROLL_BAR_DISPLAY_MODE_NONE
+         *
+         * @see feathers.controls.Scroller#scrollBarDisplayMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">SCROLL_BAR_DISPLAY_MODE_NONE</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"none"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The vertical scroll bar will be positioned on the right.
+         *
+         * @see feathers.controls.Scroller#verticalScrollBarPosition
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_SCROLL_BAR_POSITION_RIGHT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"right"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * The vertical scroll bar will be positioned on the left.
+         *
+         * @see feathers.controls.Scroller#verticalScrollBarPosition
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">VERTICAL_SCROLL_BAR_POSITION_LEFT</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"left"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#INTERACTION_MODE_TOUCH
+         *
+         * @see feathers.controls.Scroller#interactionMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INTERACTION_MODE_TOUCH</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"touch"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#INTERACTION_MODE_MOUSE
+         *
+         * @see feathers.controls.Scroller#interactionMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INTERACTION_MODE_MOUSE</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"mouse"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @copy feathers.controls.Scroller#INTERACTION_MODE_TOUCH_AND_SCROLL_BARS
+         *
+         * @see feathers.controls.Scroller#interactionMode
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptReserved">static</span> <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">INTERACTION_MODE_TOUCH_AND_SCROLL_BARS</span>:<span class="ActionScriptDefault_Text">String</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptString">"touchAndScrollBars"</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Constructor.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">ScrollContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layoutViewPort</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">LayoutViewPort</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layoutViewPort</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * A flag that indicates if the display list functions like &lt;code&gt;addChild()&lt;/code&gt;
+         * and &lt;code&gt;removeChild()&lt;/code&gt; will be passed to the internal view
+         * port.
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">displayListBypassEnabled</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">layoutViewPort</span>:<span class="ActionScriptDefault_Text">LayoutViewPort</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_layout</span>:<span class="ActionScriptDefault_Text">ILayout</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * Controls the way that the container's children are positioned and
+         * sized.
+         *
+         * &lt;p&gt;The following example tells the container to use a horizontal layout:&lt;/p&gt;
+         *
+         * &lt;listing version="3.0"&gt;
+         * var layout:HorizontalLayout = new HorizontalLayout();
+         * layout.gap = 20;
+         * layout.padding = 20;
+         * container.layout = layout;&lt;/listing&gt;
+         *
+         * @default null
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">ILayout</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">layout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">ILayout</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LAYOUT</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_mxmlContentIsReady</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">_mxmlContent</span>:<span class="ActionScriptDefault_Text">Array</span>;
+
+        <span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptMetadata">ArrayElementType</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"feathers.core.IFeathersControl"</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptBracket/Brace">]</span>
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">mxmlContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">Array</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">set</span> <span class="ActionScriptDefault_Text">mxmlContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">value</span>:<span class="ActionScriptDefault_Text">Array</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptDefault_Text">value</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span> <span class="ActionScriptOperator">&amp;&amp;</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContentIsReady</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">childCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span>;
+                <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">childCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span><span class="ActionScriptBracket/Brace">)</span>;
+                    <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">true</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">value</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContentIsReady</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_MXML_CONTENT</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">numChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptReserved">get</span> <span class="ActionScriptDefault_Text">numRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">result</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">result</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getRawChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span>:<span class="ActionScriptDefault_Text">String</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildByName</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">name</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getRawChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addRawChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">parent</span> <span class="ActionScriptOperator">==</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">else</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptDefault_Text">child</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">numChildren</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">addRawChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptDefault_Text">child</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeRawChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span> <span class="ActionScriptOperator">&gt;=</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">removeRawChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">DisplayObject</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span>  <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">removeChildAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">dispose</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">child</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">getRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptDefault_Text">int</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">return</span> <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">setRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">setChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">swapRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child1</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">child2</span>:<span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">index1</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child1</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">index2</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">getRawChildIndex</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child2</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span> <span class="ActionScriptOperator">&lt;</span> 0 <span class="ActionScriptOperator">||</span> <span class="ActionScriptDefault_Text">index2</span> <span class="ActionScriptOperator">&lt;</span> 0<span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">throw</span> <span class="ActionScriptReserved">new</span> <span class="ActionScriptDefault_Text">ArgumentError</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptString">"Not a child of this container"</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">swapRawChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">swapChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">swapChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">swapChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">swapRawChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span>:<span class="ActionScriptDefault_Text">int</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">swapChildrenAt</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">index1</span><span class="ActionScriptOperator">,</span> <span class="ActionScriptDefault_Text">index2</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">sortChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">sortChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptDefault_Text">DisplayObjectContainer</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">viewPort</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">sortChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @inheritDoc
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">sortRawChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span>:<span class="ActionScriptDefault_Text">Function</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">oldBypass</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">sortChildren</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">compareFunction</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">displayListBypassEnabled</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">oldBypass</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * Readjusts the layout of the container according to its current
+         * content. Call this method when changes to the content cannot be
+         * automatically detected by the container. For instance, Feathers
+         * components dispatch &lt;code&gt;FeathersEventType.RESIZE&lt;/code&gt; when their
+         * width and height values change, but standard Starling display objects
+         * like &lt;code&gt;Sprite&lt;/code&gt; and &lt;code&gt;Image&lt;/code&gt; do not.
+         */</span>
+        <span class="ActionScriptReserved">public</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">readjustLayout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layoutViewPort</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">readjustLayout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">invalidate</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SIZE</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">initialize</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">initialize</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshMXMLContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">override</span> <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">sizeInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_SIZE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stylesInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STYLES</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">stateInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_STATE</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">layoutInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_LAYOUT</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">mxmlContentInvalid</span>:<span class="ActionScriptDefault_Text">Boolean</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">isInvalid</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">INVALIDATION_FLAG_MXML_CONTENT</span><span class="ActionScriptBracket/Brace">)</span>;
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">mxmlContentInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">refreshMXMLContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">layoutInvalid</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span> <span class="ActionScriptReserved">is</span> <span class="ActionScriptDefault_Text">IVirtualLayout</span><span class="ActionScriptBracket/Brace">)</span>
+                <span class="ActionScriptBracket/Brace">{</span>
+                    <span class="ActionScriptDefault_Text">IVirtualLayout</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span><span class="ActionScriptBracket/Brace">)</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">useVirtualLayout</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">false</span>;
+                <span class="ActionScriptBracket/Brace">}</span>
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layoutViewPort</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">layout</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_layout</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+
+            <span class="ActionScriptReserved">super</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">draw</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+
+        <span class="ActionScriptASDoc">/**
+         * @private
+         */</span>
+        <span class="ActionScriptReserved">protected</span> <span class="ActionScriptfunction">function</span> <span class="ActionScriptDefault_Text">refreshMXMLContent</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptBracket/Brace">)</span>:<span class="ActionScriptReserved">void</span>
+        <span class="ActionScriptBracket/Brace">{</span>
+            <span class="ActionScriptReserved">if</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptOperator">!</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span> <span class="ActionScriptOperator">||</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContentIsReady</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptReserved">return</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">const</span> <span class="ActionScriptDefault_Text">childCount</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">length</span>;
+            <span class="ActionScriptReserved">for</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">i</span>:<span class="ActionScriptDefault_Text">int</span> <span class="ActionScriptOperator">=</span> 0; <span class="ActionScriptDefault_Text">i</span> <span class="ActionScriptOperator">&lt;</span> <span class="ActionScriptDefault_Text">childCount</span>; <span class="ActionScriptDefault_Text">i</span><span class="ActionScriptOperator">++</span><span class="ActionScriptBracket/Brace">)</span>
+            <span class="ActionScriptBracket/Brace">{</span>
+                <span class="ActionScriptvar">var</span> <span class="ActionScriptDefault_Text">child</span>:<span class="ActionScriptDefault_Text">DisplayObject</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptDefault_Text">DisplayObject</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContent</span><span class="ActionScriptBracket/Brace">[</span><span class="ActionScriptDefault_Text">i</span><span class="ActionScriptBracket/Brace">]</span><span class="ActionScriptBracket/Brace">)</span>;
+                <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">addChild</span><span class="ActionScriptBracket/Brace">(</span><span class="ActionScriptDefault_Text">child</span><span class="ActionScriptBracket/Brace">)</span>;
+            <span class="ActionScriptBracket/Brace">}</span>
+            <span class="ActionScriptReserved">this</span><span class="ActionScriptOperator">.</span><span class="ActionScriptDefault_Text">_mxmlContentIsReady</span> <span class="ActionScriptOperator">=</span> <span class="ActionScriptReserved">true</span>;
+        <span class="ActionScriptBracket/Brace">}</span>
+    <span class="ActionScriptBracket/Brace">}</span>
+<span class="ActionScriptBracket/Brace">}</span>
+</pre></body>
+</html>
