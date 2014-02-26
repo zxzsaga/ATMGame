@@ -1,0 +1,58 @@
+{
+    amaze: {
+        properties: {
+            users: {
+                user.id: {
+                    constructor: User(id, connection, lastTime, room, player),
+                    properties: {
+                        id: int,
+                        connection: connection, // this can not be JSON.stringify()
+                        lastTime: int,
+                        room: int,
+                        player: {
+                            type: string,
+                            x: int,
+                            y: int,
+                            ghost: boolean,
+                            zombie: boolean,
+                            name: string,
+                            alive: boolean
+                        }
+                    },
+                    method: [
+                        setPlayer(player),
+                        getBroadcastMsg(amaze),
+                        getPlayerInfo(),
+                        joinRoom(roomId)
+                    ]
+                }
+            },
+            userNum: int,
+            rooms: {
+                properties: {
+                    userIds: [],
+                    monsters: {},
+                    traps: [],
+                    broadcastTime: int,
+                    status: string
+                    seed: int
+                },
+                method: [
+                    addUser(userId)
+                ]
+            }
+        },
+        method: [
+            checkRoomStatus(roomId),
+            addUser(user),
+            addRoom(roomId, room),
+            userJoinRoom(userId, roomId),
+            sendMsg(userList, msg);
+        ]
+    },
+    msg: {
+        properties: {
+            msgs: [ string ]
+        }
+    }
+}

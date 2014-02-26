@@ -20,7 +20,6 @@ app.get('/', function(req, res) {
 });
 
 
-
 var user = {};
 var userCount = 0;
 var monster = {};
@@ -30,6 +29,7 @@ var seed = Math.floor(Math.random() * (100000 - 2 + 1) + 2);
 
 var socket = require('net').createServer(function(connect) {
     socket.bufferSize = 512;
+
     userCount ++;
     var thisUser = userCount;
     user[thisUser] = {
@@ -193,3 +193,16 @@ function checkBlockDistance(pos1, pos2, edge1, edge2) {
     return false;
 }
 broadcastTimeout();
+
+function Role(id, seed, type, x, y, ghost, zombie, name, room, alive) {
+    this.id = id;
+    this.seed = seed;
+    this.type = type || 'pos';
+    this.x = x || -1;
+    this.y = y || -1;
+    this.ghost = ghost || false;
+    this.zombie = zombie || false;
+    this.name = name || '';
+    this.room = room || 0;
+    this.alive = alive || false;
+}
