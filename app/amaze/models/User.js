@@ -1,10 +1,13 @@
 'use strict';
 
-function User(id, connection, lastTime, room, player) {
+function User(id, connection, name, ping, lastTime, room, status, player) {
     this.id = id;
     this.connection = connection;
+    this.name = name || 'human';
+    this.ping = ping || 0;
     this.lastTime = lastTime || 0;
-    this.room = room || -1;
+    this.room = room || 0;
+    this.status = status || 'waiting';
     this.player = player || {}; // player object
 }
 
@@ -31,9 +34,6 @@ User.prototype.getPlayerInfo = function() {
     playerInfo.seed = amaze.rooms[this.room].seed;
     playerInfo.room = this.room;
     return playerInfo;
-}
-User.prototype.joinRoom = function(roomId) {
-    this.room = roomId;
 }
 
 exports.User = User;

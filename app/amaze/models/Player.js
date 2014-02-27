@@ -1,13 +1,13 @@
 'use strict';
 
-function Player(type, x, y, ghost, zombie, name, room, alive) {
-    this.type = type || 'pos';
+function Player(x, y, ghost, zombie, name, alive) {
     this.x = x || -1;
     this.y = y || -1;
     this.ghost = ghost || false;
     this.zombie = zombie || false;
-    this.name = name || '';
+    this.name = name || 'hzgd';
     this.alive = alive || false;
+    // type
     // id
     // seed
     // room
