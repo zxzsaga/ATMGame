@@ -7,7 +7,7 @@ var connect = require('connect'); // use for parse response body.
 var Log = require('log'), log = new Log('info');
 
 var webConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).web;
-var UserDAO = require('./app/DAO/UserDAO').UserDAO;
+var UserDAO = require('./app/DAO/web/UserDAO').UserDAO;
 
 //var amazeServer;
 
@@ -19,6 +19,7 @@ app.set('views', __dirname + '/public/' + webConfig.public);
 app.set('view engine', 'jade');
 app.listen(webConfig.port);
 log.info('Web-server liston on: ' + webConfig.port);
+
 
 app.get('/', function(req, res) {
     if (req.cookies.accessId) {
@@ -45,6 +46,8 @@ app.get('/kill', function(req, res) {
     amazeServer.kill();
     res.render('/main',  { username: req.cookies.accessId, cmd: 'run' });    
 });
+
+
 app.post('/login', function(req, res) {
     if (req.param('username') == '') {
         res.render('login', { error: 'Please enter username' });

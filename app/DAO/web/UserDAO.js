@@ -1,12 +1,16 @@
 var MongoClient = require('mongodb').MongoClient;
-var baseDAO = require('./baseDAO');
+var baseDAO = require('../baseDAO');
 
 function UserDAO(DB) {
     this.DB = DB;
 }
 
 UserDAO.prototype.create = function(userName, password, cb) {
-    var obj = { _id: userName, password: password };
+    var obj = {
+        _id: userName,
+        password: password,
+        registerAt: new Date()
+    };
     baseDAO.create(
         this.DB,
         'Users',

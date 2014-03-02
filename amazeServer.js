@@ -154,7 +154,8 @@ var socket = require('net').createServer(function(connect) {
                                 host: amaze.rooms[user.room].owner === user.id,
                                 ghost: user.player.ghost,
                                 name: user.player.name,
-                                type: 'room'
+                                type: 'room',
+                                text: user.player.text
                             };
                             connect.write(JSON.stringify(message));
                             console.debug("user %s enter a new room %s.", user.id, msg.room);
@@ -171,7 +172,8 @@ var socket = require('net').createServer(function(connect) {
                                 host: amaze.rooms[user.room].owner === user.id,
                                 ghost: user.player.ghost,
                                 name: user.player.name,
-                                type: 'room'
+                                type: 'room',
+                                text: user.player.text
                             };
                             amaze.sendMsg(roomMates, JSON.stringify(message));
                             message.id = 0 - message.id;
@@ -184,7 +186,8 @@ var socket = require('net').createServer(function(connect) {
                                     host: roomMates[j] === amaze.rooms[user.room].owner,
                                     ghost: amaze.users[roomMates[j]].player.ghost,
                                     name: amaze.users[roomMates[j]].player.name,
-                                    type: 'room'
+                                    type: 'room',
+                                    text: amaze.users[roomMates[j]].player.text
                                 }
                                 connect.write(JSON.stringify(roomMateMsg));
                             }
@@ -214,7 +217,8 @@ var socket = require('net').createServer(function(connect) {
                             host: amaze.rooms[user.room].owner === user.id,
                             ghost: user.player.ghost,
                             name: user.player.name,
-                            type: 'room'
+                            type: 'room',
+                            text: msg.text
                         };
                         amaze.sendMsg(roomMates, JSON.stringify(message));
                         message.id = 0 - message.id;
