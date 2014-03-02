@@ -52,7 +52,7 @@ Amaze.prototype.userLeaveRoom = function(user) {
     else {
         this.rooms[roomId].removeUser(user.id);
         if (this.rooms[roomId].userIds.length === 0 ) {
-            delete Amaze.rooms[roomId];
+            delete this.rooms[roomId];
         }
         else {
             this.rooms[roomId].owner = this.rooms[roomId].userIds[0];

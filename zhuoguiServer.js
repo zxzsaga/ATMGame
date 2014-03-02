@@ -16,7 +16,7 @@ server.listen(zhuoguiConfig.port);
 log.info('zhuoghui-server liston on: ' + zhuoguiConfig.port);
 
 app.get('/', function(req, res) {
-    res.render('index.html');
+    res.render('catchghost.html');
 });
 
 
@@ -24,10 +24,10 @@ app.get('/', function(req, res) {
 
 var room = {};
 var player = {};
-var socketPlayer {}; // key, value
+var socketPlayer = {}; // key, value
 
 io.sockets.on('connection', function(socket) {
-    socket.on('whoAmI', function(data));
+    socket.on('whoAmI', function(data) {});
     socket.on('createRoom', function(data) { // { username, number }
         if (!data.username) {
             socket.emit('msg', { error: 'please enter username' });
@@ -56,28 +56,29 @@ io.sockets.on('connection', function(socket) {
             socket.emit('msg', { success: 'create room' });
         }
     });
-    socket.on('enterRoom', function(data) { // { username, number }
+    socket.on('enteroom', function(data) { // { username, number }
+        console.log(data);
         if (!data.username) {
             socket.emit('msg', { error: 'please enter username' });
         }
-        else if (!data.number) {
+        else if (!data.roomnum) {
             socket.emit('msg', { error: 'please enter room number' });
         }
-        else if (!room[data.number]) {
-            socket.imit('msg', { error: 'this room does not exist' });
+        else if (!room[data.roomnum]) {
+            socket.emit('msg', { error: 'this room does not exist' });
         }
-        else if (room[data.number].player[data.username]) {
-            socket.imit('msg', { error: 'this name already exist'});
+        else if (room[data.roomnum].player[data.username]) {
+            socket.emit('msg', { error: 'this name already exist'});
         }
         else {
-            room[data.number].player[data.username] = {};
-            room[data.number].player[data.username].status = 'waiting';
+            room[data.roomnum].player[data.username] = {};
+            room[data.roomnum].player[data.username].status = 'waiting';
             player[data.username] = {};
-            player[data.username].room = data.number;
+            player[data.username].room = data.roomnum;
             socket.emit('msg', { success: 'enter room' });
         }
     });
     socket.on('ready', function() {
-        if (player[data.])
+        // if (player[data.])
     })
 });

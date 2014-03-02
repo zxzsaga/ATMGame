@@ -2,7 +2,7 @@ package
 {
 	public class PlayerInfo
 	{
-		public function PlayerInfo(_id : int, _x : int, _y : int, _name : String, _ig : Boolean, _iz : Boolean, _ia : Boolean, _room : int, _seed : int)
+		public function PlayerInfo(_id : int, _x : int, _y : int, _name : String, _ig : Boolean, _iz : Boolean, _ia : Boolean, _room : int, _seed : int, _ping : int)
 		{
 			id = _id;
 			x = _x;
@@ -13,7 +13,9 @@ package
 			alive = _ia;
 			room = _room;
 			seed = _seed;
+			ping = _ping;
 		}
+		public var ping : int;
 		public var isGhost : Boolean;
 		public var isZombie : Boolean;
 		public var alive : Boolean;

@@ -11,6 +11,16 @@ package
 	public class Assets
 	{
 		//img
+		[Embed(source="../img/start-2.png")]
+		public static const start2:Class;
+		[Embed(source="../img/start-1.png")]
+		public static const start1:Class;
+		[Embed(source="../img/how to play-1.png")]
+		public static const howtoplay1:Class;
+		[Embed(source="../img/how to play-2.png")]
+		public static const howtoplay2:Class;
+		[Embed(source="../img/titleBG.png")]
+		public static const titleBG:Class;
 		[Embed(source="../img/ableGround.png")]
 		public static const ableGround:Class;
 		[Embed(source="../img/trapGround.png")]
@@ -22,6 +32,8 @@ package
 		
 		[Embed(source="../img/inputNameBG.png")]
 		public static const inputNameBG:Class;
+		[Embed(source="../img/boardBG.png")]
+		public static const boardBG:Class;
 		[Embed(source="../img/unableGround.png")]
 		public static const unableGround:Class;
 		[Embed(source="../img/player.png")]

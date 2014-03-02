@@ -1,15 +1,16 @@
 'use strict';
 
-function User(id, connection, name, ping, lastTime, room, status, player) {
+function User(id, connection, ping, lastTime, room, status, player) {
     this.id = id;
     this.connection = connection;
-    this.name = name || 'human';
     this.ping = ping || 0;
     this.lastTime = lastTime || 0;
     this.room = room || 0;
-    this.status = status || 'waiting';
     this.player = player || {}; // player object
 }
+
+
+
 
 // TODO: need change
 User.prototype.getBroadcastMsg = function(amaze) {

@@ -1,10 +1,11 @@
 package
 {
+	import feathers.controls.TextInput;
+	
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
 	import flash.net.Socket;
-	import flash.system.fscommand;
 	import flash.utils.Timer;
 	import flash.utils.setTimeout;
 	
@@ -24,16 +25,21 @@ package
 
 	public class GameStage extends Sprite
 	{
-		public function GameStage(_name : String = "", _ts : TextSpace = null, _trs : TrapSpace = null, _ig : Boolean = false) : void
+		
+		public var mySocket : MySocket;
+		public function GameStage(_director : Director, _name : String = "", _ts : TextSpace = null, _trs : TrapSpace = null, _ig : Boolean = false) : void
 		{
 			super();
 			isGhost = _ig;
 			textSpace = _ts;
 			trapSpace = _trs;
 			playerName = _name;
-			mySocket = new MySocket(this);
+			mySocket = _director.mySocket;
+			networkUse = _director.networkUse;
+			director = _director;
 			//initialize();
 		}
+		public var director : Director;
 		public var networkUse : Boolean = false;
 		public var myFilter : SpotlightFilter;
 		public var ghostFilter : SpotlightFilter;
@@ -50,23 +56,25 @@ package
 		public var limitx : int;
 		public var limity : int;
 		public var inRoom : int = 0;
+		public var ping : int = 0;
+		
 		public var key : int = int(Math.random() * 10000000);
 		public var alive : Boolean;
 		public function initialize(x : int = -1, y : int = -1) : void
 		{	
-			trace("in?");
+			trace(" seed ! " + seed);
 			if (startFlag) return;
 			textSpace.myId = playerId;
 			trapSpace.ghost = isGhost;
 			if (isGhost) {
 				if (networkUse) {
-					mySocket.sendTrapMessage(playerId, -1, -1);
-					mySocket.sendGhostMessage(playerId, -1, -1);
+					//mySocket.sendTrapMessage(playerId, -1, -1);
+					//mySocket.sendGhostMessage(playerId, -1, -1);
 				}
 				trace(textSpace);
 				textSpace.convertCdHint = new TextField(300, 40, fixTime(0), "Arial", 15);
 				textSpace.convertCdHint.color = Color.BLACK;
-				textSpace.convertCdHint.x = 1098;
+				textSpace.convertCdHint.x = 1086;
 				textSpace.convertCdHint.y = 300;
 				textSpace.convertCdHint.hAlign = HAlign.CENTER;  // 横向对齐
 				textSpace.convertCdHint.vAlign = VAlign.CENTER; // 纵向对其
@@ -76,7 +84,7 @@ package
 				
 				textSpace.trapHint = new TextField(300, 40, fixTime(0), "Arial", 15);
 				textSpace.trapHint.color = Color.WHITE;
-				textSpace.trapHint.x = 1098;
+				textSpace.trapHint.x = 1086;
 				textSpace.trapHint.y = 279;
 				textSpace.trapHint.hAlign = HAlign.CENTER;  // 横向对齐
 				textSpace.trapHint.vAlign = VAlign.CENTER; // 纵向对其
@@ -90,7 +98,7 @@ package
 				skillTrapCd = 15;
 			}
 			alive = true;
-			textSpace.addUser(playerId, playerName, alive, isGhost);
+			textSpace.addUser(playerId, playerName, alive, isGhost, ping);
 			startFlag = true;
 			var dx : uint;
 			var dy : uint;
@@ -115,13 +123,13 @@ package
 			//seed = 2;
 			if (seed % 3 == 0) {
 				maze = new RPMazeCreater();
-				(RPMazeCreater(maze)).createMaze(62, 33, -1, -1, seed);
+				(RPMazeCreater(maze)).createMaze(51, 30, -1, -1, seed);
 			} else if (seed % 3 == 1) {
 				maze = new DFSMazeCreater();
-				(DFSMazeCreater(maze)).createMaze(62, 33, -1, -1, seed);
+				(DFSMazeCreater(maze)).createMaze(51, 30, -1, -1, seed);
 			} else {
 				maze = new RDMazeCreater();
-				(RDMazeCreater(maze)).createMaze(62, 33, seed);
+				(RDMazeCreater(maze)).createMaze(51, 30, seed);
 			}
 			trace("??" + maze.ex);
 			trace("??" + maze.ey);
@@ -129,6 +137,8 @@ package
 			ey = maze.ey;
 			myFilter.x = dx + maze.sx * 9 + 4;
 			myFilter.y = dy + maze.sy * 9 + 4;
+			limitx = 103;
+			limity = 61;
 			player_icon = new Image(Assets.getTexture('player'));
 			if (x == -1 && y == -1) {
 				player_icon.x = dx + maze.sx * 9 + 2;
@@ -137,8 +147,10 @@ package
 				player_icon.x = x;
 				player_icon.y = y;
 			}
-			limitx = 125;
-			limity = 67;
+			if (isGhost) {
+				player_icon.x = dx + 60 * 9;
+				player_icon.y = dy + 30 * 9;
+			}
 			var c1 : int;
 			c1 = 0;
 			var c2 : int;
@@ -193,7 +205,7 @@ package
 			}
 			addChild(player_icon);
 			
-			textSpace.myTimer.x = 1150;
+			textSpace.myTimer.x = 1137;
 			textSpace.myTimer.y = 30;
 			textSpace.myTimer.hAlign = HAlign.CENTER;  // 横向对齐
 			textSpace.myTimer.vAlign = VAlign.CENTER; // 纵向对其
@@ -201,8 +213,8 @@ package
 			textSpace.addChild(textSpace.myTimer);
 			
 			
-			textSpace.fpsText.x = 1150;
-			textSpace.fpsText.y = 600;
+			textSpace.fpsText.x = 1137;
+			textSpace.fpsText.y = 585;
 			textSpace.fpsText.hAlign = HAlign.CENTER;  // 横向对齐
 			textSpace.fpsText.vAlign = VAlign.CENTER; // 纵向对其
 			textSpace.fpsText.border = false;
@@ -250,7 +262,7 @@ package
 				}
 			}
 		}
-		public function deadGrid(_x : int, _y : int)
+		public function deadGrid(_x : int, _y : int) : void
 		{
 			deadSeChannel = deadSe.play();
 			var tx : int = (_x - 30) / 9;
@@ -261,9 +273,9 @@ package
 			for (var xx : int = -1; xx <= 1; xx++)
 				for (var yy : int = -1; yy <= 1; yy++)
 					if (!maze._mazeMap[tx + xx][ty + yy])
-						if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, player_icon.x, player_icon.x + 4)
-							&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, player_icon.y, player_icon.y + 4)) {
-							var tmp : Number = sqr(30 + (tx + xx) * 9 + 4.5 - (player_icon.x + 2)) + sqr(15 + (ty + yy) * 9 + 4.5 - (player_icon.y + 2));
+						if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, _x, _x + 4)
+							&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, _y, _y + 4)) {
+							var tmp : Number = sqr(30 + (tx + xx) * 9 + 4.5 - (_x + 2)) + sqr(15 + (ty + yy) * 9 + 4.5 - (_y + 2));
 							if (tmp < mini) {
 								mini = tmp;
 								bx = 30 + (tx + xx) * 9;
@@ -295,7 +307,7 @@ package
 					break;
 				}
 			}
-			textSpace.deadMessage = new TextField(300, 40, "You died:)", "Arial", 21);
+			textSpace.deadMessage = new TextField(300, 40, "You died : )", "Arial", 21);
 			textSpace.deadMessage.color = Color.RED;
 			textSpace.deadMessage.x = 1098;
 			textSpace.deadMessage.y = 200;
@@ -347,7 +359,7 @@ package
 			//trace(al, ar, bl, br);
 			return Math.max(al, bl) < Math.min(ar, br); 
 		}
-		public function removePlayer(p : PlayerInfo)
+		public function removePlayer(p : PlayerInfo) : void
 		{
 			if (players.length)
 				for (var i : int = players.length - 1; i >= 0; i--) {
@@ -355,7 +367,9 @@ package
 						if (displayed[i]) {
 							erasePlayer(players[i].id);
 						}
-						players[i].x = players[players.length - 1].x;
+						textSpace.removeUser(p.id);
+						players[i] = players[players.length - 1];
+						/*players[i].x = players[players.length - 1].x;
 						players[i].y = players[players.length - 1].y;
 						players[i].id = players[players.length - 1].id;
 						players[i].name = players[players.length - 1].name;
@@ -363,7 +377,7 @@ package
 						players[i].isZombie = players[players.length - 1].isZombie;
 						players[i].alive = players[players.length - 1].alive;
 						players[i].room = players[players.length - 1].room;
-						players[i].seed = players[players.length - 1].seed;
+						players[i].seed = players[players.length - 1].seed;*/
 						
 						displayed[i] = displayed[players.length - 1];
 						displayed.pop();
@@ -372,6 +386,15 @@ package
 				}
 		}
 		private var sum : Number = 0;
+		public function gameOver(winName : String) : void
+		{
+			overFlag = true;
+			textSpace.overText = new TextField(399, 60, winName, "Arial", 27);
+			textSpace.overText.x = 999;
+			textSpace.overText.y = 90;
+			textSpace.addChild(textSpace.overText);
+			this.filter = null;
+		}
 		public function onEnterFrame(event:EnterFrameEvent) : void
 		{
 			if (isGhost) {
@@ -483,6 +506,8 @@ package
 								flag = 0;
 				if (flag == 1) player_icon.y += dy;
 			}
+			if (overFlag)
+				isZombie = false;
 			if (isGhost) {
 				player_icon.x = Math.max(player_icon.x, 30 + 9);
 				player_icon.x = Math.min(player_icon.x, 30 + limitx * 9 - 9);
@@ -502,24 +527,12 @@ package
 			if (!overFlag && !isGhost) {
 				if (check(30 + ex * 9, 30 + ex * 9 + 9, player_icon.x, player_icon.x + 4)
 					&& check(15 + ey * 9, 15 + ey * 9 + 9, player_icon.y, player_icon.y + 4)) {
-					textSpace.overText = new TextField(200, 40, "Human Success!", "Arial", 27);
-					textSpace.overText.x = 1150;
-					textSpace.overText.y = 90;
 					overFlag = true;
-					textSpace.addChild(textSpace.overText);
-					this.filter = null;
-					mySocket.sendWinMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed);
+					mySocket.sendWinMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed, ping);
 				}
 			}
 			if (networkUse) {
-				if (isGhost) {
-					mySocket.sendGhostMessage(playerId, skillConvertCd, skillTrap);
-				}
-
-				//trace("why?");
-				//sendMessage();
-				mySocket.sendMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed);
-				//dealMessage();
+				mySocket.sendMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed, ping);
 				for (var i : int = 0; i < mySocket.players.length; i++) {
 					if (mySocket.players[i].id == playerId) continue;
 					var apprflag : Boolean = false; 
@@ -539,18 +552,18 @@ package
 						}
 					}
 					if (!apprflag) {
-						textSpace.addUser(mySocket.players[i].id, mySocket.players[i].name, mySocket.players[i].alive, mySocket.players[i].isGhost);
+						textSpace.addUser(mySocket.players[i].id, mySocket.players[i].name, mySocket.players[i].alive, mySocket.players[i].isGhost, mySocket.players[i].ping);
 						players.push(new PlayerInfo(mySocket.players[i].id, mySocket.players[i].x, mySocket.players[i].y, mySocket.players[i].name, mySocket.players[i].isGhost, 
-							mySocket.players[i].isZombie, mySocket.players[i].alive, mySocket.players[i].room, mySocket.players[i].seed));
+							mySocket.players[i].isZombie, mySocket.players[i].alive, mySocket.players[i].room, mySocket.players[i].seed, mySocket.players[i].ping));
 						displayed.push(false);
-					} else textSpace.addUser(mySocket.players[i].id, mySocket.players[i].name, mySocket.players[i].alive, mySocket.players[i].isGhost);
+					} else textSpace.addUser(mySocket.players[i].id, mySocket.players[i].name, mySocket.players[i].alive, mySocket.players[i].isGhost, mySocket.players[i].ping);
 				}
 				for (var i : int = 0; i < players.length; i++) {
 					var canSee : Boolean = true;
 					var zombieDel : int = 0;
 					if (isZombie)
-						zombieDel = 333;
-					canSee = (canSee && (sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y) <= 2199 - zombieDel));
+						zombieDel = 1200;
+					canSee = (canSee && (sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y) <= 1623 - zombieDel));
 					/*trace("???" + sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y));
 					if (canSee)
 						trace("canSee1 !!!!");*/
@@ -559,6 +572,7 @@ package
 //						trace("canSee2 !!!!");
 					canSee = (canSee && !(isGhost && !isZombie));
 					canSee = (canSee || this.filter == null);
+					canSee = (canSee && players[i].alive);
 					if (displayed[i]) {
 						if (canSee) {
 							movePlayer(players[i].id, players[i].x, players[i].y);
@@ -598,7 +612,7 @@ package
 		{
 			//trace("droped " + mySocket);
 			if (networkUse)
-				mySocket.dropMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed);
+				mySocket.dropMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed, ping);
 			//trace("droped " + mySocket);
 		}
 		public function sqr(a : Number) : int
@@ -652,10 +666,18 @@ package
 					this.filter = ghostFilter;
 				else 
 					this.filter = myFilter;*/
+			} else if (e.keyCode == 9) { // tab
+				if (showBoard) {
+					showBoard = false;
+					textSpace.removeUserBoard();
+					textSpace.removeChild(textSpace.userBoard);
+				}
 			} else if (e.keyCode == 16) { // shift
 				plane_rush_flag = true;
 			}
 		}
+		public var headC = 1;
+		public var debugC = 1;
 		private function onKeyDownHandle(e:KeyboardEvent):void 
 		{
 			if (e.keyCode == 37) { // left
@@ -723,6 +745,43 @@ package
 						actTrap(bx, by);
 					}
 				}
+			} else if (e.keyCode == 69) { // e
+				//headC++;
+				//textSpace.removeUser(headC);
+			} else if (e.keyCode == 68) { // d
+				//debugC++;
+				//textSpace.addUser(debugC, String(debugC), debugC % 2 == 0, debugC % 2 == 1, debugC % 2); 
+				//gameOver("Human escaped!");
+				  //gameOver("Ghost success!");
+				/*if (isGhost) {
+					var tx : int = (player_icon.x - 30) / 9;
+					var ty : int = (player_icon.y - 15) / 9;
+					var mini : Number = 1000000000;
+					var bx : int = -1;
+					var by : int;
+					for (var xx : int = -1; xx <= 1; xx++)
+						for (var yy : int = -1; yy <= 1; yy++)
+							if (!maze._mazeMap[tx + xx][ty + yy])
+								if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, player_icon.x, player_icon.x + 4)
+									&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, player_icon.y, player_icon.y + 4)) {
+									var tmp : Number = sqr(30 + (tx + xx) * 9 + 4.5 - (player_icon.x + 2)) + sqr(15 + (ty + yy) * 9 + 4.5 - (player_icon.y + 2));
+									if (tmp < mini) {
+										mini = tmp;
+										bx = 30 + (tx + xx) * 9;
+										by = 15 + (ty + yy) * 9;
+									}
+								}
+					//trace("pos " + bx + " " + by);
+					if (bx != -1)// && trapSpace.trapped(bx, by)) {
+						deadGrid(bx, by);
+				}*/
+			} else if (e.keyCode == 9) { // tab
+				if (!showBoard) {
+					showBoard = true;
+					textSpace.addChild(textSpace.userBoard);
+					textSpace.addUserBoard();
+					trace("!!");
+				}
 			} else if (e.keyCode == 90) { // z
 				if (isGhost && !isZombie && skillConvertCd <= 0.0001) {
 					var inseFlag : Boolean = false;
@@ -782,6 +841,8 @@ package
 		public var dir_press : Array = new Array(-1, -1, -1, -1);
 		public var plane_rush_flag : Boolean = true;
 		
+		public var showBoard : Boolean = false;
+		
 		public var playersImages : Vector.<PlayerImage> = new Vector.<PlayerImage>();
 		public var players : Vector.<PlayerInfo>;
 		public var displayed : Vector.<Boolean>;
@@ -804,7 +865,6 @@ package
 		//public var bgm_voice : SoundTransform;
 		
 		
-		public var mySocket : MySocket;
 		
 		public var seed : int = -1;
 		public var playerId : int = -1;
@@ -814,6 +874,6 @@ package
 		public var deadSpace : DeadSpace;
 		public var textSpace : TextSpace;
 		public var trapSpace : TrapSpace;
-		var light : BlurFilter = BlurFilter.createGlow();
+		public var light : BlurFilter = BlurFilter.createGlow();
 	}
 }
