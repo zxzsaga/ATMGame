@@ -126,7 +126,7 @@ var socket = require('net').createServer(function(connect) {
             if (msg.type === 'gameChat') {
                 var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
                 var message = {
-                    type: 'chat',
+                    type: 'gameChat',
                     name: user.player.name,
                     content: msg.content
                 };
