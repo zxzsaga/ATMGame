@@ -7,7 +7,7 @@ function Player(x, y, ghost, zombie, name, alive, text) {
     this.zombie = zombie || false;
     this.name = name || 'hzgd';
     this.alive = alive || false;
-    this.text = text || '顺风耳！';
+    this.text = text || '普通人！';
     // type
     // id
     // seed
