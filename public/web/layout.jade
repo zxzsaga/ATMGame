@@ -1,0 +1,48 @@
+extend bsLayout
+block body
+  nav.navbar.navbar-default.navbar-fixed-top(role="navigation")
+    .container
+      .collapse.navbar-collapse
+        ul.nav.navbar-nav
+          li.active
+            a(href="/") ATM
+          li
+            a(href="/") ATM
+          li.dropdown
+            a.dropdown-toggle(href="#", data-toggle="dropdown")
+              Dropdown
+              b.caret
+            ul.dropdown-menu
+              li
+                a(href="#") Action
+              li
+                a(href="#") Another action
+              li
+                a(href="#") Something else here
+              li.divider
+              li
+                a(href="#") Separated link
+              li.divider
+              li
+                a(href="#") One more separated link
+        ul.nav.navbar-nav.navbar-right
+          li
+            a(href="#") Link
+          li.dropdown
+            a.dropdown-toggle(href="#", data-toggle="dropdown")
+              Dropdown
+              b.caret
+            ul.dropdown-menu
+              li
+                a(href="#") Action
+              li
+                a(href="#") Another action
+              li
+                a(href="#") Something else here
+            li.divider
+            li
+              a(href="/account")
+                span.glyphicon.glyphicon-user
+  div(style="margin-top:80px")
+  .container
+    block content

@@ -1,16 +1,14 @@
-extend bsLayout
-
-block body
-  div.container(style='padding-top: 50px;')
-    h1 #{ username }
-    //
-      form.form-horizontal.col-lg-4.col-lg-offset-4(action='/login', method='POST', role='form')
-        if cmd === 'run'
-          input.form-control.input-lg(name='username', type='text', id='username', placeholder='Username')
-          .form-group
-            .col-lg-12
-              input.form-control.input-lg(name='password', type='password', id='password', placeholder='Password')
-          a.btn.btn-lg.btn-default() run
-        if cmd === 'kill'
-          a.btn.btn-lg.btn-default(href='59.78.44.40:8000/run') kill
-          a.btn.btn-lg.btn-default(href='http://59.78.44.40:8001') enter
+extend layout
+block content
+  .row
+    .col-lg-3
+      h1 #{ username }
+    .col-lg-9
+      .row
+        .col-lg-3
+          .thumbnail
+            a(href='http://59.78.44.40:8001')
+              img(src="/img/amaze.png", alt="amaze")
+            .caption
+              h3 Amaze
+              p 一个人走迷宫，鬼捉人的游戏。

@@ -1,6 +1,7 @@
 // 'use strict';
 
 var express = require('express'), app = express();
+var connect = require('connect'); // use for parse response body.
 var fs = require('fs');
 var Log = require('log'), log = new Log('info');
 var server = require('http').createServer(app);
@@ -15,6 +16,9 @@ var Msg = require('./app/amaze/models/Msg').Msg;
 
 var amazeConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).amaze;
 
+app.use(express.cookieParser());
+app.use(connect.urlencoded());
+app.use(connect.json());
 app.use(express.static(__dirname + '/public/' + amazeConfig.public));
 app.set('views', __dirname + '/public/' + amazeConfig.public);
 app.set('view engine', 'html');
@@ -22,9 +26,31 @@ app.engine('html', require('ejs').renderFile);
 
 app.listen(amazeConfig.port);
 console.log('amaze-web-server liston on: ' + amazeConfig.port);
-
+/*
+app.all('*', function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "X-Requested-With");
+    res.header("Access-Control-Allow-Methods","PUT,POST,GET,DELETE,OPTIONS");
+    res.header("X-Powered-By",' 3.2.1')
+    res.header("Content-Type", "application/text");
+    next();
+});
+*/
 app.get('/', function(req, res) {
     res.render('Game.html');
+});
+app.post('/getRooms', function(req, res) {
+    var msg = {};
+    msg.rooms = [];
+    for (var z in amaze.rooms) {
+        var room = {
+            room: z,
+            player: amaze.rooms[z].userIds.length,
+            status: amaze.rooms[z].status
+        }
+        msg.rooms.push(room);
+    }
+    res.json(msg);
 });
 
 
@@ -64,7 +90,6 @@ var socket = require('net').createServer(function(connect) {
             }
             amaze.sendMsg(roomMates, JSON.stringify(message2));
         }
-
         console.log('User %s disconnect, remove him from amaze.', user.id);
         connect.destroy();
     });
@@ -209,6 +234,7 @@ var socket = require('net').createServer(function(connect) {
                         user.player.name = msg.name;
                         user.player.ghost = msg.ghost;
                         user.ping = msg.ping;
+                        user.player.text = msg.text;
                         var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
                         var message = {
                             id: user.id,
@@ -284,19 +310,40 @@ var socket = require('net').createServer(function(connect) {
                 }
             }
             else if (msg.type === 'drop') {
+                if (user.room > 0) {
+                    var currentRoom = amaze.rooms[user.room];
+                    var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
+                    var message = {
+                        id: user.id,
+                        info: 'quit',
+                        ping: user.ping,
+                        host: amaze.rooms[user.room].owner === user.id,
+                        ghost: user.player.ghost,
+                        name: user.player.name,
+                        type: 'room'
+                    };
+                    amaze.sendMsg(roomMates, JSON.stringify(message));
+                    amaze.userLeaveRoom(user);
+                    console.debug(user.id + ': drop');                    
+                }
+                
                 // TODO
-                var roomMate = amaze.rooms[user.room].userIds;
-                var indexOfUserId = roomMate.indexOf(user.id);
-                roomMate[indexOfUserId] = roomMate[roomMate.length - 1];
-                roomMate.pop();
-                amaze.sendMsg(roomMate, JSON.stringify(msg));
-                amaze.removeUser(user);
-                console.log('drop: ' + user.id);
+                console.log('Error: ' + user.id);
+                // console.log(data);
                 connect.destroy();
             }
             else if (msg.type == 'trap') {
                 var trap = { x: msg.x, y: msg.y };
                 amaze.rooms[user.room].traps.push(trap);
+                var message = {
+                    type: 'trap',
+                    x: trap.x,
+                    y: trap.y
+                }
+                amaze.rooms[user.room].userIds.forEach(function(userId) {
+                    amaze.users[userId].connection.write(JSON.stringify(message));
+                    // console.log('trap: ' + userId);
+                });
             }
             else if (msg.type == 'pos') {
                 user.player.x = msg.x;

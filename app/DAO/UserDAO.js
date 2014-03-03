@@ -1,5 +1,5 @@
 var MongoClient = require('mongodb').MongoClient;
-var baseDAO = require('../baseDAO');
+var baseDAO = require('./baseDAO');
 
 function UserDAO(DB) {
     this.DB = DB;
@@ -11,16 +11,12 @@ UserDAO.prototype.create = function(userName, password, cb) {
         password: password,
         registerAt: new Date()
     };
-    baseDAO.create(
+    baseDAO.insert(
         this.DB,
         'Users',
         obj,
-        function(err, doc) {
-            if (err) {
-                return cb(err);
-            }
-            return cb(err, doc);
-        });
+        cb
+    )
 };
 UserDAO.prototype.findOne = function(userName, cb) {
     var obj = { _id: userName };
@@ -28,12 +24,19 @@ UserDAO.prototype.findOne = function(userName, cb) {
         this.DB,
         'Users',
         obj,
-        function(err, doc) {
-            if (err) {
-                return cb(err);
-            }
-            return cb(err, doc);
-        });
+        cb
+    );
+};
+UserDAO.prototype.update = function(userName, password, cb) {
+    var obj = { _id: userName };
+    var update = { $set: { password: password} };
+    baseDAO.update(
+        this.DB,
+        'Users',
+        obj,
+        update,
+        cb
+    );
 };
 
 exports.UserDAO = UserDAO;

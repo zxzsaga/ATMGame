@@ -7,7 +7,7 @@ var connect = require('connect'); // use for parse response body.
 var Log = require('log'), log = new Log('info');
 
 var webConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).web;
-var UserDAO = require('./app/DAO/web/UserDAO').UserDAO;
+var UserDAO = require('./app/DAO/UserDAO').UserDAO;
 
 //var amazeServer;
 
@@ -35,25 +35,17 @@ app.get('/login', function(req, res) {
 app.get('/register', function(req, res) {
     res.render('register');
 });
-app.get('/run', function(req, res) {
-    amazeServer = spawn('node', ['amazeServer.js']);
-    amazeServer.stdout.on('data', function(data) {
-        console.log(data.toString());
-    });
-    res.render('/main',  { username: req.cookies.accessId, cmd: 'kill' });
-});
-app.get('/kill', function(req, res) {
-    amazeServer.kill();
-    res.render('/main',  { username: req.cookies.accessId, cmd: 'run' });    
-});
+app.get('/account', function(req, res) {
+    res.render('account');
+})
 
 
 app.post('/login', function(req, res) {
     if (req.param('username') == '') {
-        res.render('login', { error: 'Please enter username' });
+        res.render('login', { error: 'Please input username' });
     }
     else if (req.param('password') == '') {
-        res.render('login', { error: 'Please enter password' });
+        res.render('login', { error: 'Please input password' });
     }
     else {
         var userdao = new UserDAO(webConfig.DB);
@@ -80,10 +72,32 @@ app.post('/register', function(req, res) {
     var userdao = new UserDAO(webConfig.DB);
     userdao.create(req.param('username'), req.param('password'), function(err, doc) {
         if (err) {
-            res.send({ error: "Username existed" });
+            res.render('register', { error: "Username existed" });
         }
         else {
             res.redirect('/');
         }
     })
 });
+app.post('/password', function(req, res) {
+    if (req.param('password') == '') {
+        res.render('account', { error: 'Please input password' });
+    }
+    else if (req.param('confirmPassword') == '') {
+        res.render('account', { error: 'Please input password again' });
+    }
+    else if (req.param('password') != req.param('confirmPassword')) {
+        res.render('account', { error: 'Password does not match' })
+    }
+    else {
+        var userdao = new UserDAO(webConfig.DB);
+        userdao.update(req.cookies.accessId, req.param('password'), function(err, doc) {
+            if (err) {
+                res.render('account', { error: 'Database error' });
+            }
+            else {
+                res.render('account', { status: 'Success' });
+            };
+        })
+    }
+})
