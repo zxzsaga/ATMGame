@@ -54,7 +54,7 @@ package
 				return;
 			}*/
 			//socket.connect("192.168.1.104", port);
-			socket.connect("59.78.44.40", port);
+			socket.connect("218.244.133.160", port);
 			trace("hi");
 			//setTimeout(checkConnection, 50);
 			//trace("drop!?!?!?!?!?!?!");

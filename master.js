@@ -10,3 +10,8 @@ var webServer = spawn('node', ['webServer.js']);
 webServer.stdout.on('data', function(data) {
     console.log(data.toString());
 });
+
+var amazeServer = spawn('node', ['amazeServer.js']);
+amazeServer.stdout.on('data', function(data) {
+    console.log(data.toString());
+});
