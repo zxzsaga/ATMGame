@@ -8,17 +8,19 @@ package
 
 	public class PlayerImage
 	{
-		public function PlayerImage(_id : int, _x : int, _y : int, _name : String, _ig : Boolean)
+		public function PlayerImage(_id : int, _x : int, _y : int, _name : String, _ig : Boolean, _sp : Boolean)
 		{
 			playerImage = new Image(Assets.getTexture('player'));
 			playerImage.x = _x;
 			playerImage.y = _y;
 			id = _id;
 			
-			nameField = new TextField(100, 30, _name, "Arial", 12);
+			nameField = new TextField(100, 30, "(" + _name + ")", "Arial", 12);
 			nameField.color = Color.GREEN;
 			if (_ig)
 				nameField.color = Color.RED;
+			if (_sp)
+				nameField.color = Color.PURPLE;
 			nameField.bold = true;
 			nameField.x = playerImage.x - 50;
 			nameField.y = playerImage.y - 30;

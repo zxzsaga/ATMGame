@@ -3,8 +3,6 @@ package{
 	//随机普里姆法生成的迷宫岔路较多，整体上较为自然而又复杂
 	public class RPMazeCreater extends MazeCreater{
 		//随机数种子
-		private const MAXRATIO:Number=1/(uint.MAX_VALUE+1);
-		private var _seed:uint;
 		
 		//迷宫参数
 		private var _haveBorder:Boolean;
@@ -50,6 +48,7 @@ package{
 			if(startY<0 || startY>=mazeHeight)
 				startY=Math.floor(rand()*(mazeHeight - 2)) + 1;
 			
+			trace(startX + " " + startY + " " + _noBlock);
 			//减去边框占的格子
 			if(!_haveBorder){
 				mazeWidth--;
@@ -163,12 +162,5 @@ package{
 			}
 		}
 		
-		//产生随机数
-		private function rand():Number{
-			_seed^=(_seed<<21);
-			_seed^=(_seed>>>35);
-			_seed^=(_seed<<4);
-			return _seed*MAXRATIO;
-		}
 	}
 }

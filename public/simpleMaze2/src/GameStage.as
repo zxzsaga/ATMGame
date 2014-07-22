@@ -2,6 +2,7 @@ package
 {
 	import feathers.controls.TextInput;
 	
+	import flash.events.TimerEvent;  
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
@@ -27,7 +28,7 @@ package
 	{
 		
 		public var mySocket : MySocket;
-		public function GameStage(_director : Director, _name : String = "", _ts : TextSpace = null, _trs : TrapSpace = null, _ig : Boolean = false) : void
+		public function GameStage(_director : Director, _name : String = "", _ts : TextSpace = null, _trs : TrapSpace = null, _ig : Boolean = false)
 		{
 			super();
 			isGhost = _ig;
@@ -37,6 +38,10 @@ package
 			mySocket = _director.mySocket;
 			networkUse = _director.networkUse;
 			director = _director;
+			if (_ig)
+				playerType = -1;
+			else
+				playerType = director.playerType;
 			//initialize();
 		}
 		public var director : Director;
@@ -44,11 +49,20 @@ package
 		public var myFilter : SpotlightFilter;
 		public var ghostFilter : SpotlightFilter;
 		public var zombieFilter : SpotlightFilter;
+		public var obFilter : SpotlightFilter;
+		
 		public var startFlag : Boolean = false;
 		public var isGhost : Boolean = false;
 		public var isZombie : Boolean = false;
+		public var isOb : Boolean = false;
+		public var playerType : int = -1;
+		public var deadFlag : Boolean = false;
+		
 		public var skillConvertCd : Number;
 		public var skillConvertLastTime : Number;
+		
+		public var skillObCd : Number;
+		public var skillObLastTime : Number;
 		
 		public var skillTrap : Number;
 		public var skillTrapCd : Number;
@@ -60,10 +74,37 @@ package
 		
 		public var key : int = int(Math.random() * 10000000);
 		public var alive : Boolean;
+		public function clear() : void
+		{
+			
+		}
 		public function initialize(x : int = -1, y : int = -1) : void
 		{	
 			trace(" seed ! " + seed);
 			if (startFlag) return;
+			
+			textSpace.charBoard = new TextField(300, 200, "", "Arial", 18);
+			textSpace.charBoard.color = Color.WHITE;
+			textSpace.charBoard.x = 988;
+			textSpace.charBoard.y = 332;
+			textSpace.charBoard.hAlign = HAlign.LEFT;  // 横向对齐
+			textSpace.charBoard.vAlign = VAlign.TOP; // 纵向对其
+			textSpace.charBoard.border = true;
+			textSpace.addChild(textSpace.charBoard);
+			textSpace.charContent = new Vector.<String>();
+			
+			textSpace.inputChar = new TextInput();
+			textSpace.inputChar.x = 32;
+			textSpace.inputChar.y = 575;
+			textSpace.inputChar.width = 900;  
+			textSpace.inputChar.height = 51;
+			textSpace.inputChar.maxChars = 33;
+			textSpace.inputChar.backgroundSkin = new Image(Assets.getTexture("inputNameBG"));
+			textSpace.inputChar.textEditorProperties.color = 0xFFFFFF;  
+			textSpace.inputChar.textEditorProperties.fontSize = 27;
+			textSpace.inputChar.text = "";
+			addChild(textSpace.inputChar);
+			
 			textSpace.myId = playerId;
 			trapSpace.ghost = isGhost;
 			if (isGhost) {
@@ -72,31 +113,45 @@ package
 					//mySocket.sendGhostMessage(playerId, -1, -1);
 				}
 				trace(textSpace);
-				textSpace.convertCdHint = new TextField(300, 40, fixTime(0), "Arial", 15);
+				textSpace.convertCdHint = new TextField(300, 40, fixTime(0), "Courier New", 15);
 				textSpace.convertCdHint.color = Color.BLACK;
-				textSpace.convertCdHint.x = 1086;
-				textSpace.convertCdHint.y = 300;
-				textSpace.convertCdHint.hAlign = HAlign.CENTER;  // 横向对齐
-				textSpace.convertCdHint.vAlign = VAlign.CENTER; // 纵向对其
+				textSpace.convertCdHint.x = 986;
+				textSpace.convertCdHint.y = 239;
+				textSpace.convertCdHint.hAlign = HAlign.LEFT;  // 横向对齐
+				textSpace.convertCdHint.vAlign = VAlign.TOP; // 纵向对其
 				textSpace.convertCdHint.border = false;
-				textSpace.convertCdHint.text = "Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
+				textSpace.convertCdHint.text = "Z: Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
 				textSpace.addChild(textSpace.convertCdHint);
 				
-				textSpace.trapHint = new TextField(300, 40, fixTime(0), "Arial", 15);
+				textSpace.obHint = new TextField(300, 40, fixTime(0), "Courier New", 15);
+				textSpace.obHint.color = Color.WHITE;
+				textSpace.obHint.x = 986;
+				textSpace.obHint.y = 270;
+				textSpace.obHint.hAlign = HAlign.LEFT;  // 横向对齐
+				textSpace.obHint.vAlign = VAlign.TOP; // 纵向对其
+				textSpace.obHint.border = false;
+				textSpace.obHint.text = "X: Ob cooldown: " + "0.0";
+				textSpace.addChild(textSpace.obHint);
+				
+				textSpace.trapHint = new TextField(300, 40, fixTime(0), "Courier New", 15);
 				textSpace.trapHint.color = Color.WHITE;
-				textSpace.trapHint.x = 1086;
-				textSpace.trapHint.y = 279;
-				textSpace.trapHint.hAlign = HAlign.CENTER;  // 横向对齐
-				textSpace.trapHint.vAlign = VAlign.CENTER; // 纵向对其
+				textSpace.trapHint.x = 986;
+				textSpace.trapHint.y = 300;
+				textSpace.trapHint.hAlign = HAlign.LEFT;  // 横向对齐
+				textSpace.trapHint.vAlign = VAlign.TOP; // 纵向对其
 				textSpace.trapHint.border = false;
-				textSpace.trapHint.text = "Trap remain: " + skillTrap;
+				textSpace.trapHint.text = "C: Trap remain: " + skillTrap;
 				textSpace.addChild(textSpace.trapHint);
+				
 
 				
 				skillConvertCd = 10;
 				skillTrap = 5;
 				skillTrapCd = 15;
+				skillObCd = 5;
 			}
+			myTimer.addEventListener(TimerEvent.TIMER, timerListener);
+			myTimer.start();
 			alive = true;
 			textSpace.addUser(playerId, playerName, alive, isGhost, ping);
 			startFlag = true;
@@ -108,10 +163,16 @@ package
 			textSpace.fpsText = new TextField(200, 40, "fps: 30.0", "Arial", 27);
 			textSpace.playerNameText = new TextField(100, 30, playerName, "Arial", 12);
 			
-			myFilter = new SpotlightFilter();
+			if (playerType == 1)
+				myFilter = new SpotlightFilter(0, 0, 0.05);
+			else
+				myFilter = new SpotlightFilter();
 			ghostFilter = new SpotlightFilter(0, 0, 0.09);
 			ghostFilter.red = 0.01;
-			zombieFilter = new SpotlightFilter(0, 0, 0.02);
+			//obFilter = myFilter;
+			obFilter = new SpotlightFilter(0, 0, 0.06);
+			//obFilter.red = 0.01;
+			zombieFilter = new SpotlightFilter(0, 0, 0.09);
 			zombieFilter.green = 0.1;
 			zombieFilter.red = 0.5;
 			if (isGhost)
@@ -139,6 +200,7 @@ package
 			myFilter.y = dy + maze.sy * 9 + 4;
 			limitx = 103;
 			limity = 61;
+			maze.createTower(trapSpace, limitx, limity);
 			player_icon = new Image(Assets.getTexture('player'));
 			if (x == -1 && y == -1) {
 				player_icon.x = dx + maze.sx * 9 + 2;
@@ -164,7 +226,7 @@ package
 				for (var j : int = 0; j < limity; j++) {
 					//trace(i);
 					//trace(j);
-					if (maze._mazeMap[i][j]) {DeadSpace
+					if (maze._mazeMap[i][j]) {
 						//var a : Image = new Image(Assets.getTexture("unableGround"));
 						mazeImage[i * limity + j] = new Image(Assets.getTexture("unableGround"));
 						mazeImage[i * limity + j].x = dx + 9 * i;
@@ -205,7 +267,7 @@ package
 			}
 			addChild(player_icon);
 			
-			textSpace.myTimer.x = 1137;
+			textSpace.myTimer.x = 950;
 			textSpace.myTimer.y = 30;
 			textSpace.myTimer.hAlign = HAlign.CENTER;  // 横向对齐
 			textSpace.myTimer.vAlign = VAlign.CENTER; // 纵向对其
@@ -213,7 +275,7 @@ package
 			textSpace.addChild(textSpace.myTimer);
 			
 			
-			textSpace.fpsText.x = 1137;
+			textSpace.fpsText.x = 957;
 			textSpace.fpsText.y = 585;
 			textSpace.fpsText.hAlign = HAlign.CENTER;  // 横向对齐
 			textSpace.fpsText.vAlign = VAlign.CENTER; // 纵向对其
@@ -288,8 +350,10 @@ package
 		public function addDeadMessage() : void
 		{
 			deadGrid(player_icon.x, player_icon.y);
-			removeEventListeners(KeyboardEvent.KEY_DOWN);
-			removeEventListeners(KeyboardEvent.KEY_UP);
+			deadFlag = true;
+			
+			//removeEventListeners(KeyboardEvent.KEY_DOWN);
+			//removeEventListeners(KeyboardEvent.KEY_UP);
 			dir_press = new Array(-1, -1, -1, -1);
 			this.alive = false;
 			this.filter = null;
@@ -309,10 +373,10 @@ package
 			}
 			textSpace.deadMessage = new TextField(300, 40, "You died : )", "Arial", 21);
 			textSpace.deadMessage.color = Color.RED;
-			textSpace.deadMessage.x = 1098;
+			textSpace.deadMessage.x = 968;
 			textSpace.deadMessage.y = 200;
-			textSpace.deadMessage.hAlign = HAlign.CENTER;  // 横向对齐
-			textSpace.deadMessage.vAlign = VAlign.CENTER; // 纵向对其
+			textSpace.deadMessage.hAlign = HAlign.LEFT;  // 横向对齐
+			textSpace.deadMessage.vAlign = VAlign.TOP; // 纵向对其
 			textSpace.deadMessage.border = false;
 			textSpace.addChild(textSpace.deadMessage);
 		}
@@ -350,6 +414,9 @@ package
 				lightingChannel = lighting.play();
 				//trace("hi??");
 				trapSpace.actTrap(_x, _y);
+			} else if (playerType == 0) {
+				lightingChannel = lighting.play();
+				trapSpace.humanActTrap(_x, _y);
 			} else if (sqr(player_icon.x - _x - 5) + sqr(player_icon.y - _y - 5) <= 2199 * 6) {
 				lightingChannel = lighting.play();
 			}
@@ -389,17 +456,59 @@ package
 		public function gameOver(winName : String) : void
 		{
 			overFlag = true;
-			textSpace.overText = new TextField(399, 60, winName, "Arial", 27);
-			textSpace.overText.x = 999;
+			textSpace.overText = new TextField(500, 60, winName + " WIN!", "Arial", 27);
+			textSpace.overText.x = 989;
 			textSpace.overText.y = 90;
+			textSpace.overText.hAlign = HAlign.LEFT;  // 横向对齐
+			textSpace.overText.vAlign = VAlign.TOP; // 纵向对其
 			textSpace.addChild(textSpace.overText);
 			this.filter = null;
 		}
+		private var myTimer:Timer = new Timer(20);
+		private var networkTime : Number = 0;
+		public function timerListener (e : TimerEvent):void{
+			networkTime = networkTime + 20;
+		}
+		private var pingSum : Number = 0;
+		private var pingRecvNumber : Number = 0;
+		private var pingSendNumber : Number = 0;
+		public function refreshPing() : void
+		{
+			trace("recv " + networkTime);
+			pingSum += networkTime;
+			var calcSum : Number = pingSum;
+			pingRecvNumber = pingRecvNumber + 1;
+			var tmp : Number = networkTime;
+			
+			for (var i : int = pingRecvNumber + 1; i <= pingSendNumber; i++) {
+				tmp = tmp + 39;
+				calcSum += tmp;
+			}
+			ping = int(calcSum / pingSendNumber);
+		}
 		public function onEnterFrame(event:EnterFrameEvent) : void
 		{
+			trace("send " + networkTime);
+			pingSendNumber = pingSendNumber + 1;
+			pingSum -= networkTime;
+			//ping += 1;
+			//quadBatch11.x -= 1;
+			if (director.networkUse && frame - lastUpdate > 300) {
+				//director.mainStage.dropMessage();
+				director.mainStage.clear();
+				director.clear();
+				director.warning();
+				return;
+			}
+/*			if (skillSeeCd <= 0) {
+				isSee = true;
+				skillSeeCd = 15;
+				skillSeeLast = 5;
+			}*/
 			if (isGhost) {
 				skillConvertCd -= event.passedTime;
 				skillTrapCd -= event.passedTime;
+				skillObCd -= event.passedTime;
 				if (skillTrapCd < 0) {
 					skillTrapCd += 15;
 					skillTrap++;
@@ -418,12 +527,32 @@ package
 					//	addChild(convertCdHint);
 					}
 				}
+				
+				if (skillObCd < 0) {
+					if (textSpace.obHint.color != Color.WHITE) {
+						textSpace.obHint.color = Color.WHITE;
+					}
+					skillObCd = 0;
+				} else {
+					if (textSpace.obHint.color != Color.BLACK) {
+						textSpace.obHint.color = Color.BLACK;
+					}
+				}
+				textSpace.obHint.text = "X: Ob cooldown: " + int(int(skillObCd * 10) / 10) + "." + int(skillObCd * 10) % 10;
+				
 				if (skillTrap == 0)
 					textSpace.trapHint.color = Color.BLACK;
 				else
 					textSpace.trapHint.color = Color.WHITE;
-				textSpace.trapHint.text = "Trap remain: " + skillTrap;
-				textSpace.convertCdHint.text = "Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
+				textSpace.trapHint.text = "C: Trap remain: " + skillTrap;
+				textSpace.convertCdHint.text = "Z: Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
+			}
+			if (isOb) {
+				skillObLastTime -= event.passedTime;
+				if (skillObLastTime < 0) {
+					isOb = false;
+					this.filter = ghostFilter;
+				}
 			}
 			if (isZombie) {
 				skillConvertLastTime -= event.passedTime;
@@ -435,6 +564,7 @@ package
 			//if (frame == 30) {
 				//addDeadMessage();
 			//}
+			
 			//trace("ini done");
 			if (!overFlag)
 				textSpace.myTimer.text = fixTime(frame_real);
@@ -469,8 +599,9 @@ package
 			//trace(myFilter.centerY );
 			var times : int = 0;
 			if (plane_rush_flag) {
-				times = 3;
+				times = 2;
 				if (isZombie) times = times + 1;
+				else if (isGhost) times += 2;
 				/*myFilter.centerX += dx * 5;
 				myFilter.centerY += dy * 5;
 				player_icon.x += dx * 5;
@@ -482,6 +613,7 @@ package
 				player_icon.x += dx * 3;
 				player_icon.y += dy * 3;*/
 			}
+			if (isOb) times = 0;
 			for (var i : int = 0; i < times; i++) {
 				var tx : int = (player_icon.x - 30) / 9;
 				var ty : int = (player_icon.y - 15) / 9;
@@ -494,6 +626,7 @@ package
 							if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, player_icon.x + dx, player_icon.x + 4 + dx)
 								&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, player_icon.y, player_icon.y + 4))
 								flag = 0;
+				//flag = 1;
 				if (flag == 1) player_icon.x += dx;
 				
 				flag = 1;
@@ -504,6 +637,7 @@ package
 							if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, player_icon.x, player_icon.x + 4)
 								&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, player_icon.y + dy, player_icon.y + 4 + dy))
 								flag = 0;
+				//flag = 1;
 				if (flag == 1) player_icon.y += dy;
 			}
 			if (overFlag)
@@ -517,10 +651,14 @@ package
 			if (myFilter != null) {
 				myFilter.x = player_icon.x;
 				myFilter.y = player_icon.y;
-				ghostFilter.x = player_icon.x;
-				ghostFilter.y = player_icon.y;
-				zombieFilter.x = player_icon.x;
-				zombieFilter.y = player_icon.y;
+				if (isGhost) {
+					ghostFilter.x = player_icon.x;
+					ghostFilter.y = player_icon.y;
+					zombieFilter.x = player_icon.x;
+					zombieFilter.y = player_icon.y;
+					obFilter.x = player_icon.x;
+					obFilter.y = player_icon.y;
+				}
 			}
 			textSpace.playerNameText.x = player_icon.x - 50;
 			textSpace.playerNameText.y = player_icon.y - 30;
@@ -531,10 +669,28 @@ package
 					mySocket.sendWinMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed, ping);
 				}
 			}
+			textSpace.addUser(playerId, playerName, alive, isGhost, ping);
+			/*trace(players.length);
+			for (var j : int = 0; j < players.length; j++)
+				if (players[j].id == playerId) {
+					players[j].x = player_icon.x;
+					players[j].y = player_icon.y;
+					players[j].isGhost = isGhost;
+					players[j].isZombie = isZombie;
+					players[j].name = playerName;
+					players[j].alive = alive;
+					players[j].room = inRoom;
+					players[j].seed = seed;
+					players[j].ping = ping;
+					apprflag = true;
+					trace("haha");
+					break;
+				}*/
 			if (networkUse) {
 				mySocket.sendMessage(playerId, player_icon.x, player_icon.y, playerName, isGhost, isZombie, inRoom, alive, seed, ping);
 				for (var i : int = 0; i < mySocket.players.length; i++) {
-					if (mySocket.players[i].id == playerId) continue;
+					if (mySocket.players[i].id == playerId)
+						continue;
 					var apprflag : Boolean = false; 
 					for (var j : int = 0; j < players.length; j++) {
 						if (mySocket.players[i].id == players[j].id) {
@@ -546,6 +702,7 @@ package
 							players[j].alive = mySocket.players[i].alive;
 							players[j].room = mySocket.players[i].room;
 							players[j].seed = mySocket.players[i].seed;
+							players[j].ping = mySocket.players[i].ping;
 							
 							apprflag = true;
 							break;
@@ -562,20 +719,26 @@ package
 					var canSee : Boolean = true;
 					var zombieDel : int = 0;
 					if (isZombie)
-						zombieDel = 1200;
-					canSee = (canSee && (sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y) <= 1623 - zombieDel));
+						zombieDel = 900;
+					if (isOb)
+						zombieDel = -900;
+					if (playerType == 1)
+						zombieDel = -900;
+					if (playerType == 2 && players[i].isGhost)
+						zombieDel = -2000;
+					canSee = (canSee && ((sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y) <= 1623 - zombieDel) || playerType == 0 && !players[i].isGhost));
 					/*trace("???" + sqr(players[i].x - player_icon.x) + sqr(players[i].y - player_icon.y));
 					if (canSee)
 						trace("canSee1 !!!!");*/
-					canSee = (canSee && (!players[i].isGhost || players[i].isZombie));
+					canSee = (canSee && (!players[i].isGhost || players[i].isZombie || playerType == 2));
 					//if (canSee)
 //						trace("canSee2 !!!!");
-					canSee = (canSee && !(isGhost && !isZombie));
-					canSee = (canSee || this.filter == null);
+					canSee = (canSee && (!(isGhost && !isZombie) || isOb));
+					canSee = (canSee || this.filter == null || isGhost && players[i].isGhost);
 					canSee = (canSee && players[i].alive);
 					if (displayed[i]) {
 						if (canSee) {
-							movePlayer(players[i].id, players[i].x, players[i].y);
+							movePlayer(players[i].id, players[i].x, players[i].y, players[i].isGhost && !players[i].isZombie);
 							displayed[i] = true;
 						} else {
 							displayed[i] = false;
@@ -583,7 +746,7 @@ package
 						}
 					} else {
 						if (canSee) {
-							drawPlayer(players[i].id, players[i].x, players[i].y, players[i].name, players[i].isGhost);
+							drawPlayer(players[i].id, players[i].x, players[i].y, players[i].name, players[i].isGhost, players[i].isGhost && !players[i].isZombie);
 							displayed[i] = true;
 						} else {
 							displayed[i] = false;
@@ -619,17 +782,22 @@ package
 		{
 			return a * a;
 		}
-		public function drawPlayer (_id : int, _x : int, _y : int, _name : String, _ig : Boolean) : void
+		public function drawPlayer (_id : int, _x : int, _y : int, _name : String, _ig : Boolean, _sp : Boolean) : void
 		{
-			var newPlayerImage : PlayerImage = new PlayerImage(_id, _x, _y, _name, _ig);
+			var newPlayerImage : PlayerImage = new PlayerImage(_id, _x, _y, _name, _ig, _sp);
 			textSpace.addChild(newPlayerImage.nameField);
 			addChild(newPlayerImage.playerImage);
 			playersImages.push(newPlayerImage);
 		}
-		public function movePlayer (_id : int, _x : int = 0, _y : int = 0) : void
+		public function movePlayer (_id : int, _x : int, _y : int, _sp : Boolean) : void
 		{
 			for (var i : int = 0; i < playersImages.length; i++)
 				if (playersImages[i].id == _id) {
+					if (_sp && playersImages[i].nameField.color != Color.PURPLE) {
+						playersImages[i].nameField.color = Color.PURPLE;
+					} else if (!_sp && playersImages[i].nameField.color == Color.PURPLE) {
+						playersImages[i].nameField.color = Color.RED;
+					}
 					playersImages[i].playerImage.x = _x;
 					playersImages[i].playerImage.y = _y;
 					playersImages[i].nameField.x = playersImages[i].playerImage.x - 50;
@@ -674,12 +842,38 @@ package
 				}
 			} else if (e.keyCode == 16) { // shift
 				plane_rush_flag = true;
+			} else if (e.keyCode == 69) { // e
+				/*if (isGhost)
+					this.filter = ghostFilter;
+				else if (isZombie)
+					this.filter = zombieFilter;
+				else
+					this.filter = myFilter;*/
 			}
 		}
+		public var lastUpdate = -1;
 		public var headC = 1;
 		public var debugC = 1;
 		private function onKeyDownHandle(e:KeyboardEvent):void 
 		{
+		    if (e.keyCode == 13) { // enter
+				if (textSpace.inputChar.text != "") {
+					if (director.networkUse)
+						director.mySocket.sendGameChatMessage(textSpace.inputChar.text, playerName);
+					textSpace.inputChar.text = "";
+				}
+			} else if (e.keyCode == 9) { // tab
+				if (!showBoard) {
+					showBoard = true;
+					textSpace.addChild(textSpace.userBoard);
+					textSpace.addUserBoard();
+					trace("!!");
+				}
+			}
+			//if (isOb && e.keyCode != 88)
+				//return;
+			if (deadFlag)
+				return;
 			if (e.keyCode == 37) { // left
 				if (dir_press[0] == -1)
 					dir_press[0] = frame;
@@ -695,6 +889,35 @@ package
 					dir_press[3] = frame;
 			} else if (e.keyCode == 88) { // x
 				//this.filter = null;
+				if (isGhost && !isZombie && !isOb) {
+					var tx : int = (player_icon.x - 30) / 9;
+					var ty : int = (player_icon.y - 15) / 9;
+					var mini : Number = 1000000000;
+					var bx : int = -1;
+					var by : int;
+					for (var xx : int = -1; xx <= 1; xx++)
+						for (var yy : int = -1; yy <= 1; yy++)
+							if (maze._mazeMap[tx + xx][ty + yy])
+								if (check(30 + (tx + xx) * 9, 30 + (tx + xx) * 9 + 9, player_icon.x, player_icon.x + 4)
+									&& check(15 + (ty + yy) * 9, 15 + (ty + yy) * 9 + 9, player_icon.y, player_icon.y + 4)) {
+									var tmp : Number = sqr(30 + (tx + xx) * 9 + 4.5 - (player_icon.x + 2)) + sqr(15 + (ty + yy) * 9 + 4.5 - (player_icon.y + 2));
+									if (tmp < mini) {
+										mini = tmp;
+										bx = tx + xx;
+										by = ty + yy;
+									}
+								}
+					if (bx != -1 && trapSpace.isObWall(bx, by) && skillObCd <= 0) {
+						skillObCd = 5;
+						skillObLastTime = 3;
+						this.filter = obFilter;
+						isOb = true;
+						//trace("YES");
+					}
+				} else if (isOb && skillObLastTime > 2.5) {
+					skillObLastTime = 0;
+					trace("done!");
+				}
 			} else if (e.keyCode == 67) { // c
 				if (isGhost && skillTrap > 0) {
 					var tx : int = (player_icon.x - 30) / 9;
@@ -746,6 +969,7 @@ package
 					}
 				}
 			} else if (e.keyCode == 69) { // e
+				//this.filter = null;
 				//headC++;
 				//textSpace.removeUser(headC);
 			} else if (e.keyCode == 68) { // d
@@ -775,15 +999,14 @@ package
 					if (bx != -1)// && trapSpace.trapped(bx, by)) {
 						deadGrid(bx, by);
 				}*/
-			} else if (e.keyCode == 9) { // tab
-				if (!showBoard) {
-					showBoard = true;
-					textSpace.addChild(textSpace.userBoard);
-					textSpace.addUserBoard();
-					trace("!!");
-				}
 			} else if (e.keyCode == 90) { // z
-				if (isGhost && !isZombie && skillConvertCd <= 0.0001) {
+				if (playerType == 0) {
+/*					if (skillSeeCd <= 0) {
+						isSee = true;
+						skillSeeCd = 15;
+						skillSeeLast = 5;
+					}*/
+				} else if (isGhost && !isZombie && skillConvertCd <= 0.0001 && !isOb) {
 					var inseFlag : Boolean = false;
 					var tx : int = (player_icon.x - 30) / 9;
 					var ty : int = (player_icon.y - 15) / 9;
@@ -814,20 +1037,33 @@ package
 							player_icon.x = bx + 3;
 							player_icon.y = by + 3;
 							isZombie = true;
-							skillConvertCd = 30;
-							skillConvertLastTime = 10;
+							skillConvertCd = 15;
+							skillConvertLastTime = 6;
 							this.filter = zombieFilter;
 						}
 					} else {
 						isZombie = true;
-						skillConvertCd = 30;
-						skillConvertLastTime = 10;
+						skillConvertCd = 15;
+						skillConvertLastTime = 6;
 						this.filter = zombieFilter;
 					}
+				} else if (isZombie && skillConvertLastTime < 3) {
+					skillConvertLastTime = 0;
 				}
 			} else if (e.keyCode == 16) { // shift
 				plane_rush_flag = false;
 			}
+		}
+		public function getChat(a : String, _name : String) : void
+		{
+			if (textSpace.charContent.length >= 6) {
+				textSpace.charContent.shift();
+			}
+			textSpace.charContent.push(_name + ": " + a + "\n");
+			var tmp : String = "";
+			for (var i : int = 0; i < textSpace.charContent.length; i++)
+				tmp += textSpace.charContent[i];
+			textSpace.charBoard.text = tmp;
 		}
 
 		public var quadBatch11 : QuadBatch = new QuadBatch();

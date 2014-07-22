@@ -21,7 +21,11 @@ package
 			//addEventListener(TouchEvent.TOUCH, what);
 			
 		} 
-		public function initialize(_director : Director)
+		public var inputChar : TextInput; 
+		public var charBoard: TextField;
+		public var charContent : Vector.<String>;
+		
+		public function initialize(_director : Director) : void
 		{
 			director = _director;
 			var empty : TextField = new TextField(1500, 1002, "", "Courier New", 51);
@@ -30,7 +34,7 @@ package
 			
 			exitButton = new TextField(60, 39, "Exit", "Arial", 33);
 			exitButton.touchable = true;
-			exitButton.x = 1188;
+			exitButton.x = 988;
 			exitButton.y = 555;
 			exitButton.hAlign = HAlign.CENTER;  // 横向对齐
 			exitButton.vAlign = VAlign.CENTER; // 纵向对其
@@ -56,12 +60,12 @@ package
 				tex = tex + "status      ";
 			tex = tex + " PING ";
 			
-			userNameHint = new TextField(500, 33, tex, "Courier New", 18);
+			userNameHint = new TextField(500, 33, tex, "Arial", 18);
 			userNameHint.color = Color.BLACK;
 			userNameHint.border = true;
 			userNameHint.bold = true;
 			userNameHint.x = 120;
-			userNameHint.y = nextY - 30;
+			userNameHint.y = nextY - 20;
 			userNameHint.hAlign = HAlign.LEFT;
 			//if (director.mainStage.showBoard)
 				//addChild(userNameListEl);
@@ -73,6 +77,7 @@ package
 					exitButton.filter = BlurFilter.createGlow();
 				if (myTouch.phase == "began") {
 					director.mainStage.dropMessage();
+					director.mainStage.clear();
 					director.clear();
 				}
 				//trace(myTouch.phase );
@@ -124,7 +129,7 @@ package
 				return a + s; 
 			} else return a;
 		}
-		public function addUser(_id : int, _name : String, _al : Boolean, _ig : Boolean, _ping) : void
+		public function addUser(_id : int, _name : String, _al : Boolean, _ig : Boolean, _ping : int) : void
 		{
 			var tex : String = "";
 			tex = fixLength(String(_id), 3) + "      ";
@@ -133,7 +138,7 @@ package
 				tex = tex + "alive      ";
 			else
 				tex = tex + " dead      ";
-			tex = tex + fixLength(_ping, 4) + "ms";
+			tex = tex + fixLength("" + _ping, 4) + "ms";
 			//trace(tex);
 			var flag : Boolean = false;
 			var len : int = userNameList.length;
@@ -176,6 +181,7 @@ package
 		public var userId : Vector.<int> = new Vector.<int>();
 		
 		public var userNameHint : TextField;
+		public var obHint : TextField;
 		public var exitButton : TextField;
 		public var convertCdHint : TextField;
 		public var myTimer : TextField;
