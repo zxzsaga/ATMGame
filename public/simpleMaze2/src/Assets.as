@@ -21,6 +21,8 @@ package
 		public static const howtoplay2:Class;
 		[Embed(source="../img/titleBG.png")]
 		public static const titleBG:Class;
+		[Embed(source="../img/roomBG.png")]
+		public static const roomBG:Class;
 		[Embed(source="../img/ableGround.png")]
 		public static const ableGround:Class;
 		[Embed(source="../img/trapGround.png")]
@@ -49,6 +51,8 @@ package
 		public static const maze:Class;
 		[Embed(source="../bgm/lighting.mp3")]
 		public static const lighting:Class;
+		[Embed(source="../bgm/lobby_enter.mp3")]
+		public static const join:Class;
 		
 		//sound end
 		

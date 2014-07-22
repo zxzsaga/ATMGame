@@ -17,7 +17,8 @@ package
 		public var socket:Socket;
 		public var director:Director;
 		public var port : int = 23456;
-		public function MySocket(_p : Director = null){
+		public var myping : int = 0;
+		public function MySocket(_p : Director = null) : void{
 			director = _p;
 			
 			/*director.networkUse = false;
@@ -65,6 +66,7 @@ package
 				director.networkUse = true;
 			}*/
 			trace("con!?!?!?!?!?!?! " + String(socket.connected));
+			director.readyPing();
 			director.mySocket.sendJoinMessage(director.roomName.text, director.userName);
 			//setTimeout(checkConnection, 99);
 		}
@@ -159,7 +161,7 @@ package
 				socket.flush();
 			}
 		}
-		public function sendRoomMessage(_id : int, _name : String, _ig : Boolean, _ping : int, _ih : Boolean, _room : int) : void
+		public function sendRoomMessage(_id : int, _name : String, _ig : Boolean, _ping : int, _ih : Boolean, _room : int, _text : String) : void
 		{
 			var o : Object = new Object();
 			o.type = "room";
@@ -170,6 +172,30 @@ package
 			o.ping = _ping;
 			o.host = _ih;
 			o.room = _room;
+			o.text = _text;
+			if (socket.connected) {
+				socket.writeUTFBytes(JSON.stringify(o));
+				socket.flush();
+			}
+		}
+		public function sendGameChatMessage(_c : String, _name : String) : void
+		{
+			var o : Object = new Object();
+			o.type = "gameChat";
+			o.name = _name;
+			o.content = _c;
+			trace("fale");
+			if (socket.connected) {
+				socket.writeUTFBytes(JSON.stringify(o));
+				socket.flush();
+			}
+		}
+		public function sendChatMessage(_c : String, _name : String) : void
+		{
+			var o : Object = new Object();
+			o.type = "chat";
+			o.name = _name;
+			o.content = _c;
 			if (socket.connected) {
 				socket.writeUTFBytes(JSON.stringify(o));
 				socket.flush();
@@ -233,7 +259,9 @@ package
 		}
 		public var last : String = "";
 		public function onSocketData(e:ProgressEvent) : void {
-			
+			if (director.gameState == 1 && director.mainStage != null && director.mainStage.startFlag) {
+				director.mainStage.lastUpdate = director.mainStage.frame;
+			}
 			//trace("收到的数据："+socket.bytesAvailable+"b/s");
 			//循环读取收到的数据，以字符码显示
 			var st : String = "";
@@ -268,25 +296,49 @@ package
 				if (type == "failed") {
 					if (director.failedInfo == null) {
 						director.failedInfo = new TextField(202, 151, "FAILED JOIN!", "Arial", 33);
-						director.failedInfo.x = 450;
+						director.failedInfo.x = 850;
 						director.failedInfo.y = 198;
 						director.addChild(director.failedInfo);
 					}
 				} else if (type == "success") {
 					//trace("!!!!!");
-					director.roomMenu = new RoomMenu();
-					director.roomMenu.initialize(director, director.roomName.text);
-					director.removeChildren();
-					director.removeEventListeners();
-					director.addChild(director.roomMenu);
+					if (director.gameState != 0) {
+						director.gameState = 0;
+						director.roomMenu = new RoomMenu();
+						director.roomMenu.ping = director.calcPing();
+						director.roomMenu.initialize(director, director.roomName.text);
+						director.removeChildren();
+						director.removeEventListeners();
+						director.addChild(director.roomMenu);
+					}
+				} else if (type == "chat") {
+					var name : String = a.name;
+					var content : String = a.content;
+					director.roomMenu.getChat(content, name);
+				} else if (type == "gameChat") {
+					trace("tes " + content);
+					var name : String = a.name;
+					var content : String = a.content;
+					director.mainStage.getChat(content, name);
 				} else if (type == "win") {
 					var name : String = a.name;
 					director.mainStage.gameOver(name);
+				} else if (type == "drop") {
+					var len : int = players.length;
+					var id : int = a.id;
+					for (var i : int = 0; i < len; i++) {
+						if (players[i].id == id) {
+							director.mainStage.removePlayer(players[i]);
+							players[i] = players[len - 1];
+							players.pop();
+							break;
+						}
+					}
 				} else if (type == "host") {
 					var id : int = a.id;
 					//trace("~~" + id + " " + director.roomMenu.myId);
-					director.roomMenu.updateMine(director.roomMenu.myId, director.roomMenu.myName, director.roomMenu.isGhost, director.roomMenu.ping, director.roomMenu.myId == id, director.roomMenu.room);
-					director.roomMenu.addUser(director.roomMenu.myId, director.roomMenu.myName, director.roomMenu.isGhost, director.roomMenu.ping, director.roomMenu.myId == id, director.roomMenu.room);
+					director.roomMenu.updateMine(director.roomMenu.myId, director.roomMenu.myName, director.roomMenu.isGhost, director.roomMenu.ping, director.roomMenu.myId == id, director.roomMenu.room,  director.roomMenu.playerTypeName);
+					director.roomMenu.addUser(director.roomMenu.myId, director.roomMenu.myName, director.roomMenu.isGhost, director.roomMenu.ping, director.roomMenu.myId == id, director.roomMenu.room, director.roomMenu.playerTypeName);
 				} else if (type == "room") {
 					var id : int = a.id;
 					var info : String = a.info;
@@ -294,16 +346,30 @@ package
 					var host : Boolean = a.host;
 					var name : String = a.name;
 					var ghost : Boolean = a.ghost;
+					var text : String = a.text;
 					if (info == "status") {
 						director.gameState = 0;
 						if (id < 0) {
 							id = -id;
-							director.roomMenu.updateMine(id, name, ghost, ping, host, room);
-							director.roomMenu.addUser(id, name, ghost, ping, host, room);
+							director.roomMenu.updateMine(id, name, ghost, ping, host, room, text);
+							director.roomMenu.addUser(id, name, ghost, ping, host, room, text);
 						} else 
-							director.roomMenu.addUser(id, name, ghost, ping, host, room);
+							director.roomMenu.addUser(id, name, ghost, ping, host, room, text);
 					} else if (info == "quit") {
-						director.roomMenu.removeUser(id);
+						if (director.gameState == 1) {
+							var len : int = players.length;
+							for (var i : int = 0; i < len; i++) {
+								if (players[i].id == id) {
+									director.mainStage.removePlayer(players[i]);
+									players[i] = players[len - 1];
+									players.pop();
+									break;
+								}
+							}
+						} else {
+							director.roomMenu.removeUser(id);
+						}
+						//if director.mainStage.removePlayer(
 					} else if (info == "start") {
 						director.gameState = 1;
 						director.gameStart(ghost, seed);
@@ -321,12 +387,18 @@ package
 					var ping : int = a.ping;
 					//trace("work: " + s);
 					if (type == "pos" && id < 0) {
-						if (director.mainStage.seed == -1) {
-							director.mainStage.playerId = -id;
-							director.mainStage.seed = seed;
+						//if (director.mainStage.seed == -1) {
 							//director.networkUse = true;
 							//director.mainStage.initialize(myx, myy);
 							//trace("get " + String(-id) + " and seed " + String(seed));
+						//}
+						if (!director.mainStage.startFlag) {
+							director.mainStage.playerId = -id;
+							director.mainStage.seed = seed;
+							director.mainStage.inRoom = room;
+							director.mainStage.initialize();
+						} else {
+							director.mainStage.refreshPing();
 						}
 					} else if (type == "pos") {
 						var flag : Boolean = false;
@@ -355,18 +427,10 @@ package
 							director.mainStage.deadUser(id, name);
 						}
 						//director.changeFloor
-					} else if (type == "drop") {
-						var len : int = players.length;
-						for (var i : int = 0; i < len; i++) {
-							if (players[i].id == id) {
-								director.mainStage.removePlayer(players[i]);
-								players[i] = players[len - 1];
-								players.pop();
-								break;
-							}
-						}
 					} else if (type == "trapped") {
 						director.mainStage.actTrap(myx, myy);
+					} else if (type == "trap") {
+						director.mainStage.trapSpace.addTrap(myx, myy);
 					}
 				}
 			}

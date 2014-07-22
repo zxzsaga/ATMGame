@@ -4,7 +4,6 @@
 	public class DFSMazeCreater extends MazeCreater{
 		//随机数种子
 		private const MAXRATIO:Number=1/(uint.MAX_VALUE+1);
-		private var _seed:uint;
 		
 		//迷宫参数
 		private var _haveBorder:Boolean;
@@ -173,12 +172,5 @@
 			}while(stack.length);
 		}
 		
-		//产生随机数
-		private function rand():Number{
-			_seed^=(_seed<<21);
-			_seed^=(_seed>>>35);
-			_seed^=(_seed<<4);
-			return _seed*MAXRATIO;
-		}
 	}
 }
