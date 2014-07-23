@@ -139,7 +139,7 @@ var socket = require('net').createServer(function(connect) {
                 continue;
             }
             if (msg.type === 'ping') {
-              connect.write(msg);
+              connect.write(JSON.stringify(msg));
             }
             if (msg.type === 'chat') {
                 var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
