@@ -2,17 +2,17 @@
 
 var express = require('express'), app = express();
 var connect = require('connect'); // use for parse response body.
-var fs = require('fs');
-var Log = require('log'), log = new Log('info');
-var server = require('http').createServer(app);
-var log4js = require('log4js');
+var fs      = require('fs');
+var Log     = require('log'), log = new Log('info');
+var server  = require('http').createServer(app);
+var log4js  = require('log4js');
 log4js.replaceConsole();
 
-var User = require('./app/amaze/models/User').User;
+var User   = require('./app/amaze/models/User').User;
 var Player = require('./app/amaze/models/Player').Player;
-var Amaze = require('./app/amaze/models/Amaze').Amaze;
-var Room = require('./app/amaze/models/Room').Room;
-var Msg = require('./app/amaze/models/Msg').Msg;
+var Amaze  = require('./app/amaze/models/Amaze').Amaze;
+var Room   = require('./app/amaze/models/Room').Room;
+var Msg    = require('./app/amaze/models/Msg').Msg;
 
 var amazeConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).amaze;
 
@@ -234,25 +234,27 @@ var socket = require('net').createServer(function(connect) {
                         console.debug('user change status lack of params');
                     }
                     else {
-                        user.player.name = msg.name;
-                        user.player.ghost = msg.ghost;
-                        user.ping = msg.ping;
-                        user.player.text = msg.text;
-                        var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-                        var message = {
-                            id: user.id,
-                            info: 'status',
-                            ping: user.ping,
-                            host: amaze.rooms[user.room].owner === user.id,
-                            ghost: user.player.ghost,
-                            name: user.player.name,
-                            type: 'room',
-                            text: msg.text
-                        };
-                        amaze.sendMsg(roomMates, JSON.stringify(message));
-                        message.id = 0 - message.id;
-                        connect.write(JSON.stringify(message));
-                        console.debug(user.id + ': change his status');
+                        if (user.room && amaze.rooms[user.room]) {
+                            user.player.name = msg.name;
+                            user.player.ghost = msg.ghost;
+                            user.ping = msg.ping;
+                            user.player.text = msg.text;
+                            var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
+                            var message = {
+                                id: user.id,
+                                info: 'status',
+                                ping: user.ping,
+                                host: amaze.rooms[user.room].owner === user.id,
+                                ghost: user.player.ghost,
+                                name: user.player.name,
+                                type: 'room',
+                                text: msg.text
+                            };
+                            amaze.sendMsg(roomMates, JSON.stringify(message));
+                            message.id = 0 - message.id;
+                            connect.write(JSON.stringify(message));
+                            console.debug(user.id + ': change his status');
+                        }
                     }
                 }
                 else if (msg.info === 'quit') {
