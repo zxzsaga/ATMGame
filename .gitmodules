@@ -1,0 +1,3 @@
+[submodule "public/simpleMaze2"]
+	path = public/simpleMaze2
+	url = https://github.com/thisisonp/maze.git
