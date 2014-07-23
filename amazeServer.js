@@ -138,6 +138,9 @@ var socket = require('net').createServer(function(connect) {
                 console.debug(user.id + " send a msg can not be parsed to JSON");
                 continue;
             }
+            if (msg.type === 'ping') {
+              connect.write(msg);
+            }
             if (msg.type === 'chat') {
                 var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
                 var message = {
