@@ -1,6 +1,7 @@
 package
 {
 	import feathers.controls.TextInput;
+	
 	import flash.media.Sound;
 	import flash.media.SoundChannel;
 	import flash.media.SoundTransform;
@@ -137,7 +138,7 @@ package
 			charContent = new Vector.<String>();
 			
 			chatHint = new TextField(51, 51, "=", "Arial", 30);
-			chatHint.x = 122-51;
+			chatHint.x = 120-51;
 			chatHint.y = 560;
 			chatHint.color = Color.WHITE;
 			chatHint.border = true;
@@ -150,11 +151,12 @@ package
 			inputChar.height = 51;
 			inputChar.maxChars = 33;
 			inputChar.backgroundSkin = new Image(Assets.getTexture("inputNameBG"));
-			inputChar.textEditorProperties.color = 0xFFFFFF;  
-			inputChar.textEditorProperties.fontSize = 27;
+			inputChar.textEditorProperties.color = 0xFFFFFF;
+			inputChar.textEditorProperties.fontSize = 28;
 			inputChar.text = "";
 			addChild(inputChar);
 			
+			charName = human0Button.text;
 			//charBoard.addEventListener(TouchEvent.TOUCH, onHuman);
 			userId = new Vector.<int>();
 			textList = new Vector.<TextField>();
@@ -220,7 +222,7 @@ package
 			if (r == len) {
 				joinChannel = joinBGM.play();
 				userId.push(_id);
-				var text : TextField = new TextField(777, 51, "", "Courier New", 18);
+				var text : TextField = new TextField(777, 51, "", "fixedsys", 18);
 				var ghostText : String = "Human";
 				var hostText : String = "";
 				if (_ig) {
@@ -231,7 +233,7 @@ package
 				if (_ih) {
 					hostText = "Host";
 				} else hostText = "Guest";
-				text.text = fixLength(String(_id), 3) + "   " + fixLength(_name, 12) + "   " + fixLength(_text, 6) + "   " + fixLength(String(_ping), 4) + "ms" + "   " + fixLength(hostText, 5);
+				text.text = fixLength(String(_id), 3) + "   " + fixLength(_name, 24 - GetChinese(_name) + int(GetChinese(_name) / 6)) + "   " + fixLength(_text, 12 - GetChinese(_text)) + "   " + fixLength(String(_ping), 4) + "ms" + "   " + fixLength(hostText, 5);
 				text.bold = true;
 				text.x = 50;
 				text.y = nextY; nextY += 30;
@@ -254,10 +256,24 @@ package
 				 if (_ih) {
 					 hostText = "Host";
 				 } else hostText = "Guest";
-				 text.text = fixLength(String(_id), 3) + "   " + fixLength(_name, 12) + "   " + fixLength(_text, 6) + "   " + fixLength(String(_ping), 4) + "ms" + "   " + fixLength(hostText, 5);
+				 trace(24 - GetChinese(_name));
+				 text.text = fixLength(String(_id), 3) + "   " + fixLength(_name, 24 - GetChinese(_name) + int(GetChinese(_name) / 6)) + "   " + fixLength(_text, 12 - GetChinese(_text)) + "   " + fixLength(String(_ping), 4) + "ms" + "   " + fixLength(hostText, 5);
 			 }
 			addEventListener(Event.ENTER_FRAME, onEnterFrame);
 		}		
+		public function GetChinese(thisString : String) : int {
+			var ret : int = 0;
+			for( var i : int = 0; i < thisString.length  ; i++ ) {
+				if(thisString.charCodeAt(i) >= 1000)
+					ret++;
+			}
+			return ret;
+		}
+		public function refreshPing(_ping : Number) : void
+		{
+			ping = int(_ping);
+			director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, charName);
+		}
 		public function onEnterFrame(event:EnterFrameEvent) : void
 		{
 			//if newWorkUse
@@ -307,6 +323,7 @@ package
 				playerHint.text = "幽灵\n\n迷宫中的幽灵，需要杀死所有玩家。\nZ变身，X进入观测点，C设置陷阱";
 				if (myTouch.phase == "began") {
 					isGhost = true;
+					charName = ghostButton.text;
 					director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, ghostButton.text);
 					//director.clear();
 				}
@@ -325,6 +342,7 @@ package
 				if (myTouch.phase == "began") {
 					isGhost = false;
 					director.playerType = 0;
+					charName = human0Button.text;
 					director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, human0Button.text);
 				}
 				//trace(myTouch.phase );
@@ -342,6 +360,7 @@ package
 				if (myTouch.phase == "began") {
 					isGhost = false;
 					director.playerType = 0;
+					charName = human1Button.text;
 					director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, human1Button.text);
 				}
 				//trace(myTouch.phase );
@@ -359,6 +378,7 @@ package
 				if (myTouch.phase == "began") {
 					isGhost = false;
 					director.playerType = 1;
+					charName = human2Button.text;
 					director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, human2Button.text);
 				}
 				//trace(myTouch.phase );
@@ -376,6 +396,7 @@ package
 				if (myTouch.phase == "began") {
 					isGhost = false;
 					director.playerType = 2;
+					charName = human3Button.text;
 					director.mySocket.sendRoomMessage(myId, myName, isGhost, ping, isHost, room, human3Button.text);
 				}
 				//trace(myTouch.phase );
@@ -435,6 +456,7 @@ package
 		public var room : int = -1;
 		public var myId : int = -1;
 		public var myName : String = "";
+		public var charName : String = "";
 		public var isGhost : Boolean = false;
 		public var ping : int = 0;
 		public var isHost : Boolean = false;

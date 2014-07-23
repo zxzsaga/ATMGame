@@ -12,6 +12,7 @@ package
 	
 	import starling.events.KeyboardEvent;
 	import starling.text.TextField;
+	import starling.utils.Color;
 
 	public class MySocket extends Sprite{
 		public var socket:Socket;
@@ -37,11 +38,18 @@ package
 		}
 		public function onError(e:Event):void{
 			trace("fail connect");
-			checkConnection();
+			if (socket.connected)
+				checkConnection();
 			return;
 		}
 		public var flag : Boolean = false;
 		public var limitTimes : int = 0; 
+		public function checkPing() : void
+		{
+			sendPingMessage();
+			setTimeout(checkPing, 1000);
+		}
+		
 		public function checkConnection() : void
 		{
 			if (socket.connected) {
@@ -66,13 +74,45 @@ package
 				director.networkUse = true;
 			}*/
 			trace("con!?!?!?!?!?!?! " + String(socket.connected));
-			director.readyPing();
+			networkTime = 0;
+			updateTime();
+			checkPing();
 			director.mySocket.sendJoinMessage(director.roomName.text, director.userName);
 			//setTimeout(checkConnection, 99);
 		}
+		public var networkTime : Number = 0;
+		public var lastStandPing : Number = 0;
+		public var lastPing : Number = -1;
+		
+		public function updateTime() : void
+		{
+			networkTime += 10;
+			setTimeout(updateTime, 10);
+		}
 		public static var ac : int = 0;
 		public static var drop : int = 1;
+		public static var hangOn : Boolean = false;
 		
+		public function sendPingMessage() : void
+		{
+			//return;
+			if (director.gameState == -1) {
+				return;
+			}
+			trace("send " + networkTime);
+			if (!hangOn) {
+				hangOn = true;
+				lastStandPing = networkTime; 
+				var o : Object = new Object();
+				o.type = "ping";
+				if (socket.connected) {
+					socket.writeUTFBytes(JSON.stringify(o));
+					socket.flush();
+				} else {
+					drop += 1;
+				}
+			} else lastPing += 1000;
+		}
 		public function sendWinMessage(_id : int, _x : int, _y : int, _name : String, _ig : Boolean, _iz : Boolean, _room : int, _al : Boolean, _seed : int, _ping : int) : void
 		{
 			//return;			
@@ -259,6 +299,7 @@ package
 		}
 		public var last : String = "";
 		public function onSocketData(e:ProgressEvent) : void {
+			
 			if (director.gameState == 1 && director.mainStage != null && director.mainStage.startFlag) {
 				director.mainStage.lastUpdate = director.mainStage.frame;
 			}
@@ -295,7 +336,9 @@ package
 				var type : String = a.type;
 				if (type == "failed") {
 					if (director.failedInfo == null) {
-						director.failedInfo = new TextField(202, 151, "FAILED JOIN!", "Arial", 33);
+						director.removeChild(director.joinHint);
+						director.failedInfo = new TextField(202, 251, "FAILED JOIN!", "Arial", 33);
+						director.failedInfo.color = Color.WHITE;
 						director.failedInfo.x = 850;
 						director.failedInfo.y = 198;
 						director.addChild(director.failedInfo);
@@ -305,7 +348,7 @@ package
 					if (director.gameState != 0) {
 						director.gameState = 0;
 						director.roomMenu = new RoomMenu();
-						director.roomMenu.ping = director.calcPing();
+						//director.roomMenu.ping = director.calcPing();
 						director.roomMenu.initialize(director, director.roomName.text);
 						director.removeChildren();
 						director.removeEventListeners();
@@ -315,8 +358,18 @@ package
 					var name : String = a.name;
 					var content : String = a.content;
 					director.roomMenu.getChat(content, name);
+				} else if (type == "ping") {
+					trace("receive " + networkTime);
+					if (hangOn) {
+						lastPing = networkTime - lastStandPing;
+						hangOn = false;
+						if (director.roomMenu != null)
+							director.roomMenu.refreshPing(lastPing);
+						if (director.mainStage != null)
+							director.mainStage.refreshPing(lastPing);
+					}
 				} else if (type == "gameChat") {
-					trace("tes " + content);
+					//trace("tes " + content);
 					var name : String = a.name;
 					var content : String = a.content;
 					director.mainStage.getChat(content, name);
@@ -398,7 +451,7 @@ package
 							director.mainStage.inRoom = room;
 							director.mainStage.initialize();
 						} else {
-							director.mainStage.refreshPing();
+							//director.mainStage.refreshPing();
 						}
 					} else if (type == "pos") {
 						var flag : Boolean = false;

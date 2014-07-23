@@ -1,1 +1,0 @@
-直接执行bin-release下的Game.html即可开始游戏！

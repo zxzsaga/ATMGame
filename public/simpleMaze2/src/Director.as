@@ -149,12 +149,13 @@ package
 			roomBoardBg.textEditorProperties.fontSize = 30;  
 			roomBoardBg.textEditorProperties.fontName = "Arial";
 			
-			roomBoard = new TextField(399, 399, " 房间\t玩家\t状态\n\t\tnone");
+			roomBoard = new TextField(399, 399, " 房间    玩家    状态\n        none");
 			//roomBoard = new TextField(399, 399, "abcde");
 			roomBoard.color = 0xFFFFFF;
 			roomBoard.x = 50;
 			roomBoard.y = 30;
 			roomBoard.fontSize = 30;
+			roomBoard.fontName = "Courier New";
 			roomBoard.vAlign = "top";
 			roomBoard.hAlign = "left";
 			roomBoard.touchable = false;
@@ -178,20 +179,29 @@ package
 					
 					request.data = "refresh";
 					request.method = "POST";
+					roomHint = new TextField(200, 75, "Refreshing...", "Arial", 33);
+					roomHint.x = 170;
+					roomHint.y = 500;
+					roomHint.color = Color.WHITE;
+					addChild(roomHint);
 					var loader:URLLoader = new URLLoader();
 					loader.load(request);
 					loader.addEventListener(Event.COMPLETE,completeHandler);
 					function completeHandler(event:Event):void {
 						trace(loader.data);
 						var a : Object = JSON.parse(loader.data);
+						removeChild(roomHint);
 						var roomList : Array = a.rooms;
-						var text : String = " 房间\t玩家\t状态\n";
+						var text : String = " 房间    玩家    状态\n";
 						if (roomList.length == 0) {
-							roomBoard.text = " 房间\t玩家\t状态\n\t\t\tnone";
+							roomBoard.text = " 房间    玩家    状态\n        none";
 							return;
 						}
 						for (var i : int = 0; i < roomList.length; i++) {
-							text += " " + roomList[i].room + "\t\t" + roomList[i].player + "\t\t" + roomList[i].status + "\n";
+							if (String(roomList[i].status) == "waitting")
+								text += " " + roomList[i].room + "        " + roomList[i].player + "     " + "等待中" + "\n";
+							else
+								text += " " + roomList[i].room + "        " + roomList[i].player + "     " + "已开始" + "\n";
 						}
 						roomBoard.text = text;
 						/*if (text.length < 3)
@@ -209,6 +219,7 @@ package
 		public function warning() : void
 		{
 			failedInfo = new TextField(202, 151, "DROP FROM THE SERVER!", "Arial", 33);
+			failedInfo.color = Color.WHITE;
 			failedInfo.x = 850;
 			failedInfo.y = 198;
 			addChild(failedInfo);
@@ -232,6 +243,11 @@ package
 					addChild(roomMenu);
 					*/
 					gameState = -1;
+					joinHint = new TextField(202, 251, "joining...", "Arial", 33);
+					joinHint.color = Color.WHITE;
+					joinHint.x = 850;
+					joinHint.y = 198;
+					addChild(joinHint);
 					userName = inputName.text;
 					mySocket = new MySocket(this); 	
 					/*if (networkUse)
@@ -335,13 +351,13 @@ package
 				mainStage.initialize();
 			}
 		}
-		private var myTimer:Timer = new Timer(1);
+		/*private var myTimer:Timer = new Timer(1);
 		private var networkTime : Number = -1;
 		
 		public function timerListener (e : TimerEvent):void{
 			networkTime = networkTime + 20;
-		}
-		public function readyPing() : void
+		}*/
+		/*public function readyPing() : void
 		{
 			myTimer = new Timer(20);
 			networkTime = 0;
@@ -354,7 +370,7 @@ package
 			myTimer.stop();
 			myTimer.removeEventListener(TimerEvent.TIMER, timerListener);
 			return networkTime;
-		}
+		}*/
 		public function clear()
 		{
 			if (mainStage != null) {
@@ -391,6 +407,9 @@ package
 		public var networkUse : Boolean;
 		public var gameState : int = -1; // -1 for nothing, 0 for waiting, 1 for started
 		public var failedInfo : TextField = null;
+		public var connectHint : TextField = null;
+		public var joinHint : TextField = null;
+		public var roomHint : TextField = null;
 		public var playerType : int = 0;
 		
 	}

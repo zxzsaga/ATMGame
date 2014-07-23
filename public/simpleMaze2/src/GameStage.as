@@ -96,7 +96,7 @@ package
 			textSpace.inputChar = new TextInput();
 			textSpace.inputChar.x = 32;
 			textSpace.inputChar.y = 575;
-			textSpace.inputChar.width = 900;  
+			textSpace.inputChar.width = 930;  
 			textSpace.inputChar.height = 51;
 			textSpace.inputChar.maxChars = 33;
 			textSpace.inputChar.backgroundSkin = new Image(Assets.getTexture("inputNameBG"));
@@ -120,7 +120,7 @@ package
 				textSpace.convertCdHint.hAlign = HAlign.LEFT;  // 横向对齐
 				textSpace.convertCdHint.vAlign = VAlign.TOP; // 纵向对其
 				textSpace.convertCdHint.border = false;
-				textSpace.convertCdHint.text = "Z: Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
+				textSpace.convertCdHint.text = "Z: 物理形态冷却时间: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
 				textSpace.addChild(textSpace.convertCdHint);
 				
 				textSpace.obHint = new TextField(300, 40, fixTime(0), "Courier New", 15);
@@ -130,7 +130,7 @@ package
 				textSpace.obHint.hAlign = HAlign.LEFT;  // 横向对齐
 				textSpace.obHint.vAlign = VAlign.TOP; // 纵向对其
 				textSpace.obHint.border = false;
-				textSpace.obHint.text = "X: Ob cooldown: " + "0.0";
+				textSpace.obHint.text = "X: 进入观测点冷却时间: " + "0.0";
 				textSpace.addChild(textSpace.obHint);
 				
 				textSpace.trapHint = new TextField(300, 40, fixTime(0), "Courier New", 15);
@@ -140,10 +140,8 @@ package
 				textSpace.trapHint.hAlign = HAlign.LEFT;  // 横向对齐
 				textSpace.trapHint.vAlign = VAlign.TOP; // 纵向对其
 				textSpace.trapHint.border = false;
-				textSpace.trapHint.text = "C: Trap remain: " + skillTrap;
+				textSpace.trapHint.text = "C: 可用陷阱个数: " + skillTrap;
 				textSpace.addChild(textSpace.trapHint);
-				
-
 				
 				skillConvertCd = 10;
 				skillTrap = 5;
@@ -453,6 +451,10 @@ package
 				}
 		}
 		private var sum : Number = 0;
+		public function refreshPing(_ping : Number) : void
+		{
+			ping = int(_ping);
+		}
 		public function gameOver(winName : String) : void
 		{
 			overFlag = true;
@@ -469,7 +471,7 @@ package
 		public function timerListener (e : TimerEvent):void{
 			networkTime = networkTime + 20;
 		}
-		private var pingSum : Number = 0;
+		/*private var pingSum : Number = 0;
 		private var pingRecvNumber : Number = 0;
 		private var pingSendNumber : Number = 0;
 		public function refreshPing() : void
@@ -485,12 +487,12 @@ package
 				calcSum += tmp;
 			}
 			ping = int(calcSum / pingSendNumber);
-		}
+		}*/
 		public function onEnterFrame(event:EnterFrameEvent) : void
 		{
-			trace("send " + networkTime);
+		/*	trace("send " + networkTime);
 			pingSendNumber = pingSendNumber + 1;
-			pingSum -= networkTime;
+			pingSum -= networkTime;*/
 			//ping += 1;
 			//quadBatch11.x -= 1;
 			if (director.networkUse && frame - lastUpdate > 300) {
@@ -538,14 +540,14 @@ package
 						textSpace.obHint.color = Color.BLACK;
 					}
 				}
-				textSpace.obHint.text = "X: Ob cooldown: " + int(int(skillObCd * 10) / 10) + "." + int(skillObCd * 10) % 10;
+				textSpace.obHint.text = "X: 进入观测点冷却时间: " + int(int(skillObCd * 10) / 10) + "." + int(skillObCd * 10) % 10;
 				
 				if (skillTrap == 0)
 					textSpace.trapHint.color = Color.BLACK;
 				else
 					textSpace.trapHint.color = Color.WHITE;
-				textSpace.trapHint.text = "C: Trap remain: " + skillTrap;
-				textSpace.convertCdHint.text = "Z: Convert cooldown: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
+				textSpace.trapHint.text = "C: 可用陷阱个数: " + skillTrap;
+				textSpace.convertCdHint.text = "Z: 物理形态冷却时间: " + int(int(skillConvertCd * 10) / 10) + "." + int(skillConvertCd * 10) % 10;
 			}
 			if (isOb) {
 				skillObLastTime -= event.passedTime;
@@ -889,6 +891,7 @@ package
 					dir_press[3] = frame;
 			} else if (e.keyCode == 88) { // x
 				//this.filter = null;
+				trace("?" + isOb + " " + skillObLastTime);
 				if (isGhost && !isZombie && !isOb) {
 					var tx : int = (player_icon.x - 30) / 9;
 					var ty : int = (player_icon.y - 15) / 9;
@@ -914,7 +917,7 @@ package
 						isOb = true;
 						//trace("YES");
 					}
-				} else if (isOb && skillObLastTime > 2.5) {
+				} else if (isOb && skillObLastTime < 2.5) {
 					skillObLastTime = 0;
 					trace("done!");
 				}

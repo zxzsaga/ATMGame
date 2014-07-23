@@ -28,7 +28,7 @@ package
 		public function initialize(_director : Director) : void
 		{
 			director = _director;
-			var empty : TextField = new TextField(1500, 1002, "", "Courier New", 51);
+			var empty : TextField = new TextField(1500, 1002, "", "fixedsys", 51);
 			empty.touchable = false;
 			addChild(empty);
 			
@@ -57,10 +57,10 @@ package
 			var tex : String = "";
 			tex = "ID" + "      ";
 			tex = tex + "    name    " + "      ";
-				tex = tex + "status      ";
-			tex = tex + " PING ";
+			tex = tex + "    status      ";
+			tex = tex + " ping ";
 			
-			userNameHint = new TextField(500, 33, tex, "Arial", 18);
+			userNameHint = new TextField(500, 33, tex, "fixedsys", 18);
 			userNameHint.color = Color.BLACK;
 			userNameHint.border = true;
 			userNameHint.bold = true;
@@ -156,7 +156,7 @@ package
 					break;
 				}
 			if (!flag) {
-				var userNameListEl : TextField = new TextField(500, 33, tex, "Courier New", 18);
+				var userNameListEl : TextField = new TextField(500, 33, tex, "fixedsys", 18);
 				nextY += 30;
 				if (_id == myId)
 					userNameListEl.color = Color.BLUE;
