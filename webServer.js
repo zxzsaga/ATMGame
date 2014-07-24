@@ -1,6 +1,6 @@
 'use strict';
 
-//var spawn = require('child_process').spawn;
+var spawn = require('child_process').spawn;
 var fs = require('fs');
 var express = require('express'), app = express();
 var connect = require('connect'); // use for parse response body.
@@ -31,14 +31,17 @@ app.get('/', function(req, res) {
 });
 app.get('/login', function(req, res) {
     res.render('login');
-})
+});
 app.get('/register', function(req, res) {
     res.render('register');
 });
 app.get('/account', function(req, res) {
     res.render('account');
-})
-
+});
+app.get('/startAmazeServer', function(req, res) {
+    var webServer = spawn('node', ['webServer.js']);
+    res.redirect('/');
+});
 
 app.post('/login', function(req, res) {
     if (req.param('username') == '') {
