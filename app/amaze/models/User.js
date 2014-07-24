@@ -1,14 +1,14 @@
 'use strict';
 
-function User(id, connection, ping, lastTime, room, status, player) {
-    this.id = id;
+function User(connection, id, ping, lastTime, room, status, player) {
     this.connection = connection;
+    this.id = id;
     this.ping = ping || 0;
-    this.lastTime = lastTime || 0;
-    this.room = room || 0;
-    this.player = player || {}; // player object
+    this.lastTime = lastTime;
+    this.room = room || null;
+    this.status = status;
+    this.player = player || {};
 }
-
 
 
 
@@ -37,4 +37,4 @@ User.prototype.getPlayerInfo = function() {
     return playerInfo;
 }
 
-exports.User = User;
+module.exports = User;

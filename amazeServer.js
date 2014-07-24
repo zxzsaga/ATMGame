@@ -8,11 +8,11 @@ var server  = require('http').createServer(app);
 var log4js  = require('log4js');
 log4js.replaceConsole();
 
-var User   = require('./app/amaze/models/User').User;
-var Player = require('./app/amaze/models/Player').Player;
-var Amaze  = require('./app/amaze/models/Amaze').Amaze;
-var Room   = require('./app/amaze/models/Room').Room;
-var Msg    = require('./app/amaze/models/Msg').Msg;
+var User   = require('./app/amaze/models/User');
+var Player = require('./app/amaze/models/Player');
+var Amaze  = require('./app/amaze/models/Amaze');
+var Room   = require('./app/amaze/models/Room');
+var Msg    = require('./app/amaze/models/Msg');
 
 var amazeConfig = JSON.parse(fs.readFileSync('config.json', 'utf8')).amaze;
 
@@ -47,80 +47,34 @@ app.post('/getRooms', function(req, res) {
             room: z,
             player: amaze.rooms[z].userIds.length,
             status: amaze.rooms[z].status
-        }
+        };
         msg.rooms.push(room);
     }
     res.json(msg);
 });
 
-
 var amaze = new Amaze();
 var socket = require('net').createServer(function(connect) {
     socket.bufferSize = 512;
-
     // TODO: 检查玩家是否为老玩家, 目前暂定 id 为 amaze.userNum + 1
-    var id = amaze.userNum + 1;
-
-    var user = new User(id, connect);
-    var player = new Player();
-    user.player = player; 
-    amaze.addUser(user);
+    var user = new User(connect);
+    amaze.newUser(user);
     console.log('New user id: %s connect.', user.id);
 
     connect.on('end', function() {
-        if (user.room > 0) {
-            var currentRoom = amaze.rooms[user.room];
-            var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-            var message = {
-                id: user.id,
-                info: 'quit',
-                ping: user.ping,
-                host: amaze.rooms[user.room].owner === user.id,
-                ghost: user.player.ghost,
-                name: user.player.name,
-                type: 'room'
-            };
-            amaze.sendMsg(roomMates, JSON.stringify(message));
+        if (user.room !== null) {
             amaze.userLeaveRoom(user);
-            console.debug(user.id + ': quit room');
-            
-            var message2 = {
-                type: 'host',
-                id: currentRoom.owner
-            }
-            amaze.sendMsg(roomMates, JSON.stringify(message2));
         }
         console.log('User %s disconnect, remove him from amaze.', user.id);
         connect.destroy();
     });
 
     connect.on('error', function(data) {
-        if (user.room > 0) {
-            var currentRoom = amaze.rooms[user.room];
-            var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-            var message = {
-                id: user.id,
-                info: 'quit',
-                ping: user.ping,
-                host: amaze.rooms[user.room].owner === user.id,
-                ghost: user.player.ghost,
-                name: user.player.name,
-                type: 'room'
-            };
-            amaze.sendMsg(roomMates, JSON.stringify(message));
+        if (user.room !== null) {
             amaze.userLeaveRoom(user);
-            console.debug(user.id + ': quit room');
-            
-            var message2 = {
-                type: 'host',
-                id: currentRoom.owner
-            }
-            amaze.sendMsg(roomMates, JSON.stringify(message2));
         }
-        
-        // TODO
         console.log('Error: ' + user.id);
-        // console.log(data);
+        console.log('Error content: ' + data);
         connect.destroy();
     });
 
@@ -135,44 +89,49 @@ var socket = require('net').createServer(function(connect) {
                               + msgArr.msgs[i]
                               + "' can not be parse to JSON.}" );
                 */
-                console.debug(user.id + " send a msg can not be parsed to JSON");
+                console.log(user.id + " send a msg can not be parsed to JSON.");
+                console.debug('Msg: ' + msgArr.msgs[i]);
                 continue;
             }
             if (msg.type === 'ping') {
               connect.write(JSON.stringify(msg));
             }
             if (msg.type === 'chat') {
-                var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-                var message = {
-                    type: 'chat',
-                    name: user.player.name,
-                    content: msg.content
-                };
-                amaze.sendMsg(roomMates, JSON.stringify(message));
-                connect.write(JSON.stringify(message));
+                if (user.room && amaze.rooms[user.room]) {
+                    var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
+                    var message = {
+                        type:    'chat',
+                        name:    user.player.name,
+                        content: msg.content
+                    };
+                    amaze.sendMsg(roomMates, JSON.stringify(message));
+                    connect.write(JSON.stringify(message));
+                }
             }
             if (msg.type === 'gameChat') {
-                var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-                var message = {
-                    type: 'gameChat',
-                    name: user.player.name,
-                    content: msg.content
-                };
-                amaze.sendMsg(roomMates, JSON.stringify(message));
-                connect.write(JSON.stringify(message));
+                if (user.room && amaze.room[user.room]) {
+                    var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
+                    var message = {
+                        type:    'gameChat',
+                        name:    user.player.name,
+                        content: msg.content
+                    };
+                    amaze.sendMsg(roomMates, JSON.stringify(message));
+                    connect.write(JSON.stringify(message));
+                }
             }
             if (msg.type === 'room') {
                 if (msg.info === 'join') {
                     if (!msg.hasOwnProperty('room')) {
                         connect.write(JSON.stringify({ type: 'failed' }));
-                        console.debug("{error:'joinRoom' don't have or param 'room'}");
+                        console.debug("Error:'joinRoom' don't have or param 'room'.");
                     }
                     else {
                         var roomStatus = amaze.checkRoomStatus(msg.room);
                         if (roomStatus === 'notExist') {
                             var newRoom = new Room();
                             amaze.addRoom(msg.room, newRoom);
-                            user.player.name = msg.name;
+                            user.player = new Player(msg.name);
                             amaze.userJoinRoom(user.id, msg.room);
                             connect.write(JSON.stringify({ type: 'success' }));
                             var message = {
@@ -189,7 +148,7 @@ var socket = require('net').createServer(function(connect) {
                             console.debug("user %s enter a new room %s.", user.id, msg.room);
                         }
                         else if (roomStatus === 'waiting') {
-                            user.player.name = msg.name;
+                            user.player = new Player(msg.name);
                             amaze.userJoinRoom(user.id, msg.room);
                             connect.write(JSON.stringify({ type: 'success' }));
                             var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
@@ -314,30 +273,14 @@ var socket = require('net').createServer(function(connect) {
                     }
                 }
             }
-            else if (msg.type === 'drop') {
-                if (user.room > 0) {
-                    var currentRoom = amaze.rooms[user.room];
-                    var roomMates = amaze.rooms[user.room].getRoomMates(user.id);
-                    var message = {
-                        id: user.id,
-                        info: 'quit',
-                        ping: user.ping,
-                        host: amaze.rooms[user.room].owner === user.id,
-                        ghost: user.player.ghost,
-                        name: user.player.name,
-                        type: 'room'
-                    };
-                    amaze.sendMsg(roomMates, JSON.stringify(message));
+            if (msg.type === 'drop') {
+                if (user.room !== null) {
                     amaze.userLeaveRoom(user);
-                    console.debug(user.id + ': drop');                    
                 }
-                
-                // TODO
-                console.log('Error: ' + user.id);
-                // console.log(data);
+                console.log('Drop: ' + user.id);
                 connect.destroy();
             }
-            else if (msg.type == 'trap') {
+            if (msg.type === 'trap') {
                 var trap = { x: msg.x, y: msg.y };
                 amaze.rooms[user.room].traps.push(trap);
                 var message = {
@@ -405,11 +348,11 @@ var sandbox = require('net').createServer(function(connection) {
         connection.end(str1, 'utf8');
     });
 });
-sandbox.listen(amazeConfig.sandboxPort, function() {
-    log.info('amaze-sandbox-server listen on: ' + amazeConfig.sandboxPort);
+sandbox.listen(843/*amazeConfig.sandboxPort*/, function() {
+    log.info('amaze-sandbox-server listen on: ' + 843/*amazeConfig.sandboxPort*/);
 });
 
-// TODO: 每30毫秒告诉房间里的人
+
 function broadcast() {
     for (var i in amaze.rooms) {
         if (amaze.rooms[i].status === 'playing') {
@@ -521,7 +464,7 @@ function broadcastTimeout() {
         currentRoom.broadcastTime ++;
     }
     broadcast();
-    setTimeout(broadcastTimeout, 30);
+    setTimeout(broadcastTimeout, 20);
 }
 broadcastTimeout();
 

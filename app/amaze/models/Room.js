@@ -9,12 +9,23 @@ function Room(userIds, monsters, traps, broadcastTime, status, seed) {
     this.seed = seed || Math.floor(Math.random() * 100000);
     this.owner = 0;
 }
+Room.prototype.removeUser = function(userId) {
+    var indexOfUserId = this.userIds.indexOf(userId);
+    if (indexOfUserId !== -1) {
+        this.userIds[indexOfUserId] = this.userIds[this.userIds.length - 1];
+        this.userIds.pop();
+    }
+};
+
+
+
+
 Room.prototype.addUser = function(userId) {
     if (this.userIds.length === 0) {
         this.owner = userId;
     }
     this.userIds.push(userId);
-}
+};
 Room.prototype.getRoomMates = function(userId) {
     var roomMates = [];
     for (var i = 0; i < this.userIds.length; i++) {
@@ -29,11 +40,7 @@ Room.prototype.getRoomMates = function(userId) {
     else {
         throw new Error ("userId: " + userId + " can not find his room");
     }
-}
-Room.prototype.removeUser = function(userId) {
-    var indexOfUserId = this.userIds.indexOf(userId);
-    this.userIds[indexOfUserId] = this.userIds[this.userIds.length - 1];
-    this.userIds.pop();
-}
-exports.Room = Room;
+};
+
+module.exports = Room;
 // finished

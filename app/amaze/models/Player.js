@@ -1,11 +1,11 @@
 'use strict';
 
-function Player(x, y, ghost, zombie, name, alive, text) {
+function Player(name, x, y, ghost, zombie, alive, text) {
+    this.name = name || 'hzgd';
     this.x = x || -1;
     this.y = y || -1;
     this.ghost = ghost || false;
     this.zombie = zombie || false;
-    this.name = name || 'hzgd';
     this.alive = alive || false;
     this.text = text || '普通人！';
     // type
@@ -13,4 +13,4 @@ function Player(x, y, ghost, zombie, name, alive, text) {
     // seed
     // room
 }
-exports.Player = Player;
+module.exports = Player;

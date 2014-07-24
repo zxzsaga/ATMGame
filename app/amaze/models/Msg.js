@@ -4,7 +4,7 @@ function Msg(data) {
     this.msgs = dataParse(data);
 }
 
-exports.Msg = Msg;
+module.exports = Msg;
 
 function dataParse(data) {
     data = data.toString();
