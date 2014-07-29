@@ -1,5 +1,6 @@
 // 'use strict';
 
+var net     = require('net');
 var express = require('express'), app = express();
 var connect = require('connect'); // use for parse response body.
 var fs      = require('fs');
@@ -55,7 +56,7 @@ app.post('/getRooms', function(req, res) {
 
 
 var amaze = new Amaze();
-var socket = require('net').createServer(function(connect) {
+var socket = net.createServer(function(connect) {
     socket.bufferSize = 512;
 
     // TODO: 检查玩家是否为老玩家, 目前暂定 id 为 amaze.userNum + 1
@@ -399,12 +400,14 @@ var socket = require('net').createServer(function(connect) {
 socket.listen(amazeConfig.socketPort, function() {
     log.info('amaze-socket-server listen on: ' + amazeConfig.socketPort);
 });
-var sandbox = require('net').createServer(function(connection) {
+var sandbox = net.createServer(function(connection) {
     // console.debug('connect to 843: ' + connection.remoteAddress);
-    connection.on('data', function(data) {
-        var str1 = "<?xml version=\"1.0\"?><cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\"/></cross-domain-policy>\0";
-        connection.end(str1, 'utf8');
+    connection.on('error', function (err) {
+        console.log('Caugout flash policy server socket error: ');
+        console.log(err.stack);
     });
+    var str1 = "<?xml version=\"1.0\"?><cross-domain-policy><allow-access-from domain=\"*\" to-ports=\"*\"/></cross-domain-policy>\0";
+    connection.end(str1, 'utf8');
 });
 sandbox.listen(amazeConfig.sandboxPort, function() {
     log.info('amaze-sandbox-server listen on: ' + amazeConfig.sandboxPort);
