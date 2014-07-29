@@ -296,6 +296,7 @@ var socket = require('net').createServer(function(connect) {
                                     id: currentUser.id,
                                     info: 'start',
                                     ping: currentUser.ping,
+                                    seed: currenRoom.seed,
                                     host: currentUser.id === currentRoom.owner,
                                     ghost: currentUser.player.ghost,
                                     name: currentUser.player.name,
@@ -353,9 +354,9 @@ var socket = require('net').createServer(function(connect) {
             else if (msg.type == 'pos') {
                 user.player.x = msg.x;
                 user.player.y = msg.y;
-                user.player.ghost = msg.ghost;
-                user.player.zombie = msg.zombie;
-                user.player.alive = msg.alive;
+                user.player.ghost = (msg.s & 1) > 0; // msg.ghost;
+                user.player.zombie = (msg.s & 2) > 0; // msg.zombie;
+                user.player.alive = (msg.s & 4) > 0; // msg.alive;
                 user.lastTime = amaze.rooms[user.room].broadcastTime;
             }
             else if (msg.type == 'win') {
@@ -522,7 +523,7 @@ function broadcastTimeout() {
         currentRoom.broadcastTime ++;
     }
     broadcast();
-    setTimeout(broadcastTimeout, 30);
+    setTimeout(broadcastTimeout, 40);
 }
 broadcastTimeout();
 
