@@ -1,8 +1,8 @@
 <!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=gb2312" />
-<title>捉鬼Online</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<title>鎹夐Online</title>
 <script src="jquery-2.0.0.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="cgjs.js"></script>
@@ -14,19 +14,19 @@
 		<form>
 			<p>Name:<input type="text" id="username" /></p>
 			<p>Room:<input type="text" id="roomnum" /></p>
-			<p><input type="button" value="走你" onClick="enteroom()" /></p>
+			<p><input type="button" value="璧颁綘" onClick="enteroom()" /></p>
 		</form>
 	</div>
 	<div id='Preroom' class="Mainblock">
 		<div id='playercharcont' class='playerchar'>
-			<input style="position:absolute;top:530px;left:800px;" type="button" value="选择角色" onClick="changechar()" />
-			<input style="position:absolute;top:530px;left:900px;" type="button" value="准备" onClick="prepare()" />
-			<input style="position:absolute;top:530px;left:970px;" type="button" value="开始" onClick="start()" disabled="disabled" />
+			<input style="position:absolute;top:530px;left:800px;" type="button" value="閫夋嫨瑙掕壊" onClick="changechar()" />
+			<input style="position:absolute;top:530px;left:900px;" type="button" value="鍑嗗" onClick="prepare()" />
+			<input style="position:absolute;top:530px;left:970px;" type="button" value="寮�濮�" onClick="start()" disabled="disabled" />
 		</div>
 		<div id='selcharcont' style="border:medium solid;position:absolute; top:30px;left:30px;width:746px;height:320px;z-index:2;">
 			<img id='select_large' style="position:absolute;top:0px;left:0px;width:360px;height:270px" />
-			<input id="selchar_rand" style="position:absolute;top:285px;left:590px;" type="button" value="随机选择" />
-			<input style="position:absolute;top:285px;left:685px;" type="button" value="返回" onClick="changechar_return()" />
+			<input id="selchar_rand" style="position:absolute;top:285px;left:590px;" type="button" value="闅忔満閫夋嫨" />
+			<input style="position:absolute;top:285px;left:685px;" type="button" value="杩斿洖" onClick="changechar_return()" />
 		</div>
 	</div>
 </body>
