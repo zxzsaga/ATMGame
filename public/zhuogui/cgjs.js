@@ -1,5 +1,5 @@
 // JavaScript Document
-var socket = io.connect('http://59.78.44.40:8002');
+var socket = io.connect('http://localhost:8002');
 var uname;
 var gamestat;
 var playerstat = {};
@@ -85,45 +85,45 @@ function enteroom(){
 	$(".Mainblock").hide();
 	$("#Preroom").show();
 	socket.emit('enteroom',{
-		'username':$("#username").val(),//ÓÃ»§Ãû
-		'roomnum':$("#roomnum").val()//·¿¼ä±àºÅ
-	});//½¨Á¢»ò¼ÓÈë·¿¼ä
+		'username':$("#username").val(),//ç”¨æˆ·å
+		'roomnum':$("#roomnum").val()//æˆ¿é—´ç¼–å·
+	});//å»ºç«‹æˆ–åŠ å…¥æˆ¿é—´
 }
 
 socket.on('enteroom', function (data){
 	console.log(data);
-	for (var i=0;i<data.playernum;i++){//data.playernum ·¿¼äÈËÊı
-		$("#playername"+data.player[i].seat).html(data.player[i].name);//data.player ÓÃ»§ĞÅÏ¢ .name ÓÃ»§Ãû .seat ×ùÎ»±àºÅ(0-9)
-		$("#playerstat"+data.player[i].seat).html(data.player[i].stat);//.seat ÓÃ»§×´Ì¬(·¿Ö÷/×¼±¸/Î´×¼±¸)
-		$("#playeravatar"+data.player[i].seat).attr("src","img/character/avatar-L/"+data.player[i].cha+".png");//.cha ÓÃ»§½ÇÉ«±àºÅ(Ä¬ÈÏÎª20)
+	for (var i=0;i<data.playernum;i++){//data.playernum æˆ¿é—´äººæ•°
+		$("#playername"+data.player[i].seat).html(data.player[i].name);//data.player ç”¨æˆ·ä¿¡æ¯ .name ç”¨æˆ·å .seat åº§ä½ç¼–å·(0-9)
+		$("#playerstat"+data.player[i].seat).html(data.player[i].stat);//.seat ç”¨æˆ·çŠ¶æ€(æˆ¿ä¸»/å‡†å¤‡/æœªå‡†å¤‡)
+		$("#playeravatar"+data.player[i].seat).attr("src","img/character/avatar-L/"+data.player[i].cha+".png");//.cha ç”¨æˆ·è§’è‰²ç¼–å·(é»˜è®¤ä¸º20)
 		if (data.player[i].cha<20)
 			$("#selchar_small_shadow"+data.player[i].cha).show();
 	}
-	playerstat.myseat = data.myseat;//data.myseat µ±Ç°ÓÃ»§×ùÎ»±àºÅ
+	playerstat.myseat = data.myseat;//data.myseat å½“å‰ç”¨æˆ·åº§ä½ç¼–å·
 	playerstat.mystat = $("#playerstat"+playerstat.myseat).html();
 	$("#playeravatar"+playerstat.myseat).click(function(){
 		$("#selcharcont").show();
 	});
-});//Íæ¼Ò½øÈë·¿¼äÊ±£¬·µ»Ø·¿¼äĞÅÏ¢
+});//ç©å®¶è¿›å…¥æˆ¿é—´æ—¶ï¼Œè¿”å›æˆ¿é—´ä¿¡æ¯
 
 socket.on('roomplayerenter', function (data){
 	console.log(data);
-	$("#playername"+data.seat).html(data.name);//data.name ½øÈë·¿¼äÓÃ»§µÄÓÃ»§Ãû data.seat ½øÈë·¿¼äµÄÓÃ»§µÄ×ùÎ»±àºÅ
-	$("#playerstat"+data.seat).html("Î´×¼±¸");
+	$("#playername"+data.seat).html(data.name);//data.name è¿›å…¥æˆ¿é—´ç”¨æˆ·çš„ç”¨æˆ·å data.seat è¿›å…¥æˆ¿é—´çš„ç”¨æˆ·çš„åº§ä½ç¼–å·
+	$("#playerstat"+data.seat).html("æœªå‡†å¤‡");
 	/*
 	$("#playeravatar"+data.seat).attr("src","img/character/avatar-L/"+data.cha+".png");
 	if (data.cha<20)
 		$("#selchar_small_shadow"+data.cha).show();
 	*/
-});//Íæ¼Ò½øÈë·¿¼äÊ±£¬ÏòÆäËûÍæ¼Ò·¢ËÍ¸ÃÍæ¼ÒĞÅÏ¢
+});//ç©å®¶è¿›å…¥æˆ¿é—´æ—¶ï¼Œå‘å…¶ä»–ç©å®¶å‘é€è¯¥ç©å®¶ä¿¡æ¯
 
 socket.on('roomplayerleave', function (data){
 	console.log(data);
-	$("#playername"+data.seat).html("");//data.seat Àë¿ª·¿¼äµÄÓÃ»§µÄ×ùÎ»±àºÅ
+	$("#playername"+data.seat).html("");//data.seat ç¦»å¼€æˆ¿é—´çš„ç”¨æˆ·çš„åº§ä½ç¼–å·
 	$("#playerstat"+data.seat).html("Noplayer");
-	if (data.cha<20)//data.cha Àë¿ª·¿¼äµÄÓÃ»§½ÇÉ«±àºÅ(Ä¬ÈÏÎª20)
+	if (data.cha<20)//data.cha ç¦»å¼€æˆ¿é—´çš„ç”¨æˆ·è§’è‰²ç¼–å·(é»˜è®¤ä¸º20)
 		$("#selchar_small_shadow"+data.cha).hide();
-});//Íæ¼ÒÀë¿ª·¿¼äÊ±£¬ÏòÆäËûÍæ¼Ò·¢ËÍ¸ÃÍæ¼ÒĞÅÏ¢
+});//ç©å®¶ç¦»å¼€æˆ¿é—´æ—¶ï¼Œå‘å…¶ä»–ç©å®¶å‘é€è¯¥ç©å®¶ä¿¡æ¯
 
 function changechar(){
 	$("#selcharcont").show();
@@ -136,19 +136,19 @@ function changechar_return(){
 function choosechar(charid){
 	socket.emit('choosechar',{
 		'username':uname,
-		'charid':charid//ËùÑ¡ÔñµÄ½ÇÉ«±àºÅ
-	});//Íæ¼ÒÑ¡Ôñ½ÇÉ«
+		'charid':charid//æ‰€é€‰æ‹©çš„è§’è‰²ç¼–å·
+	});//ç©å®¶é€‰æ‹©è§’è‰²
 	$("#playeravatar"+playerstat.myseat).attr("src","img/character/avatar-L/"+charid+".png");
 }
 
 socket.on('choosechar', function (data){
 	console.log(data);
-	$("#playeravatar"+data.seat).attr("src","img/character/avatar-L/"+data.cha+".png");//data.seat Ñ¡Ôñ½ÇÉ«µÄÓÃ»§×ùÎ»±àºÅ data.cha ÓÃ»§ĞÂÑ¡ÔñµÄ½ÇÉ«±àºÅ
+	$("#playeravatar"+data.seat).attr("src","img/character/avatar-L/"+data.cha+".png");//data.seat é€‰æ‹©è§’è‰²çš„ç”¨æˆ·åº§ä½ç¼–å· data.cha ç”¨æˆ·æ–°é€‰æ‹©çš„è§’è‰²ç¼–å·
 	if (data.cha<20)
 		$("#selchar_small_shadow"+data.cha).show();
-	if (data.lstcha<20)//data.lstcha ÓÃ»§Ö®Ç°Ñ¡ÔñµÄ½ÇÉ«±àºÅ
+	if (data.lstcha<20)//data.lstcha ç”¨æˆ·ä¹‹å‰é€‰æ‹©çš„è§’è‰²ç¼–å·
 		$("#selchar_small_shadow"+data.lstcha).hide();
-});//Íæ¼ÒÑ¡Ôñ½ÇÉ«Ê±£¬ÏòÆäËûÍæ¼Ò·¢ËÍ¸ÃĞÅÏ¢
+});//ç©å®¶é€‰æ‹©è§’è‰²æ—¶ï¼Œå‘å…¶ä»–ç©å®¶å‘é€è¯¥ä¿¡æ¯
 
 function prepare(){
 	if ($("#playerstat"+playerstat.myseat).html() == "host"){
@@ -157,17 +157,17 @@ function prepare(){
 	}
 	socket.emit('prepare',{
 		'username':uname,
-	});//Íæ¼Ò¸ü¸Ä×¼±¸×´Ì¬
-	if ($("#playerstat"+playerstat.myseat).html() == "Î´×¼±¸")
-		$("#playerstat"+data.seat).html("ÒÑ×¼±¸");
+	});//ç©å®¶æ›´æ”¹å‡†å¤‡çŠ¶æ€
+	if ($("#playerstat"+playerstat.myseat).html() == "æœªå‡†å¤‡")
+		$("#playerstat"+data.seat).html("å·²å‡†å¤‡");
 	else
-		$("#playerstat"+data.seat).html("Î´×¼±¸");
+		$("#playerstat"+data.seat).html("æœªå‡†å¤‡");
 }
 
 socket.on('prepare', function (data){
 	console.log(data);
-	$("#playerstat"+data.seat).html(data.stat);//data.seat ¸ü¸Ä×´Ì¬µÄÓÃ»§×ùÎ»±àºÅ data.statr ÓÃ»§µ±Ç°×´Ì¬
-});//Íæ¼Ò¸ü¸Ä×´Ì¬Ê±£¬ÏòÆäËûÍæ¼Ò·¢ËÍ¸ÃĞÅÏ¢
+	$("#playerstat"+data.seat).html(data.stat);//data.seat æ›´æ”¹çŠ¶æ€çš„ç”¨æˆ·åº§ä½ç¼–å· data.statr ç”¨æˆ·å½“å‰çŠ¶æ€
+});//ç©å®¶æ›´æ”¹çŠ¶æ€æ—¶ï¼Œå‘å…¶ä»–ç©å®¶å‘é€è¯¥ä¿¡æ¯
 
 function gamestart(){
 	socket.emit('gamestart',{
@@ -177,8 +177,8 @@ function gamestart(){
 
 socket.on('gamestart', function (data){
 	console.log(data);
-	alert("ÔİÊ±¾Í×öµ½ÕâÀï")
-});//ÓÎÏ·¿ªÊ¼Ê±£¬ÏòËùÓĞÍæ¼Ò·¢ËÍ¸ÃĞÅÏ¢
+	alert("æš‚æ—¶å°±åšåˆ°è¿™é‡Œ")
+});//æ¸¸æˆå¼€å§‹æ—¶ï¼Œå‘æ‰€æœ‰ç©å®¶å‘é€è¯¥ä¿¡æ¯
 
 /*
 socket.on('cginfo', function (data){
