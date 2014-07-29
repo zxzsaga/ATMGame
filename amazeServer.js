@@ -296,7 +296,7 @@ var socket = require('net').createServer(function(connect) {
                                     id: currentUser.id,
                                     info: 'start',
                                     ping: currentUser.ping,
-                                    seed: currenRoom.seed,
+                                    seed: currentRoom.seed,
                                     host: currentUser.id === currentRoom.owner,
                                     ghost: currentUser.player.ghost,
                                     name: currentUser.player.name,
@@ -425,14 +425,17 @@ function broadcast() {
                     y: currentUser.player.y,
                     // ping: currentUser.ping,
                     // seed: currentRoom.seed,
-                    ghost: currentUser.player.ghost,
+                    // ghost: currentUser.player.ghost,
                     // zombie: currentUser.player.zombie,
                     // name: currentUser.player.name,
                     // alive: currentUser.player.alive,
-                    // type: 'pos',
-                    type: 'nothing'
+                    type: 'pos'
                     // room: i
                 };
+                message.s =  currentUser.player.ghost  ? 1 : 0;
+                message.s += currentUser.player.zombie ? 2 : 0;
+                message.s += currentUser.player.alive  ? 4 : 0;
+
                 amaze.sendMsg(roomMates, JSON.stringify(message));
                 message.id = 0 - message.id;
                 currentUser.connection.write(JSON.stringify(message));
