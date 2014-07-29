@@ -422,14 +422,15 @@ function broadcast() {
                     id: currentUserId,
                     x: currentUser.player.x,
                     y: currentUser.player.y,
-                    ping: currentUser.ping,
-                    seed: currentRoom.seed,
+                    // ping: currentUser.ping,
+                    // seed: currentRoom.seed,
                     ghost: currentUser.player.ghost,
-                    zombie: currentUser.player.zombie,
-                    name: currentUser.player.name,
-                    alive: currentUser.player.alive,
-                    type: 'pos',
-                    room: i
+                    // zombie: currentUser.player.zombie,
+                    // name: currentUser.player.name,
+                    // alive: currentUser.player.alive,
+                    // type: 'pos',
+                    type: 'nothing'
+                    // room: i
                 };
                 amaze.sendMsg(roomMates, JSON.stringify(message));
                 message.id = 0 - message.id;
